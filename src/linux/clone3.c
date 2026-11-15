@@ -57,15 +57,29 @@ hidden long __clone3(struct clone_args *args, size_t size)
 	return __syscall(SYS_clone3, args, size);
 }
 
-/* Compatible fallback is permitted only when no clone3-only property
- * was requested. Anything else fails loudly instead of silently
- * dropping a requested security or supervision property. In
- * particular a seccomp EPERM on the clone3 number denies the number,
- * not the capability; falling back without new properties preserves
- * every requested semantic. Requesting pidfd/cgroup/set_tid and then
- * falling back would not, so that path never falls back. */
+/* Compatible fallback is permitted only when the legacy int-flags
+ * clone() can carry every requested property. Anything else fails
+ * loudly instead of silently dropping a requested security or
+ * supervision property. In particular a seccomp EPERM on the clone3
+ * number denies the number, not the capability; falling back without
+ * new properties preserves every requested semantic. Requesting
+ * pidfd/cgroup/set_tid and then falling back would not, so that path
+ * never falls back. The checks test flags as well as fields: a zero
+ * cgroup with CLONE_INTO_CGROUP set, or CLONE_PIDFD with a null
+ * pointer, is still a request. Flag bits above 31 (CLONE_CLEAR_
+ * SIGHAND, CLONE_INTO_CGROUP, and any future bit) do not survive
+ * the int conversion, and an exit_signal that does not fit the
+ * legacy signal byte must not be truncated: all refuse. */
 static int legacy_expressible(const struct clone_args *args)
 {
+	if (args->flags & ~0xffffffffull)
+		return 0;
+	if (args->flags & ((unsigned long long)CLONE_PIDFD |
+	                   (unsigned long long)CLONE_CLEAR_SIGHAND |
+	                   (unsigned long long)CLONE_INTO_CGROUP))
+		return 0;
+	if (args->exit_signal & ~0xffull)
+		return 0;
 	return !args->pidfd && !args->set_tid &&
 	       !args->set_tid_size && !args->cgroup;
 }

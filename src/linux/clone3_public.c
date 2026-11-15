@@ -23,11 +23,14 @@
  * Size discipline: clone3(2) versions its struct at 64, 80 and 88
  * bytes, and the kernel reads only the supplied prefix. The
  * wrapper does the same: anything below 64 is EINVAL outright
- * (the kernel accepts nothing smaller), and only
- * min(size, 88) bytes are copied. Fields past the supplied size
- * stay zero. In particular a size-64 caller that happens to have
- * a nonzero cgroup member gets launch semantics, not a refusal:
- * the field was never supplied.
+ * (the kernel accepts nothing smaller); only 64, 80 or 88 are
+ * admitted, and only min(size, 88) bytes are copied. Anything
+ * else is E2BIG: passing a larger size with only an 88-byte
+ * buffer would let the kernel read past the end of it, and
+ * gap sizes name no defined version. Fields past the admitted
+ * size stay zero. In particular a size-64 caller that happens
+ * to have a nonzero cgroup member gets launch semantics, not a
+ * refusal: the field was never supplied.
  *
  * Signal discipline: the exit signal travels in exit_signal only.
  * A nonzero low byte in flags is EINVAL, not translated: silent
@@ -54,6 +57,10 @@ pid_t clone3(struct clone3_args *args, size_t size,
 
 	if (!args || size < 64) {
 		errno = EINVAL;
+		return -1;
+	}
+	if (size != 64 && size != 80 && size != 88) {
+		errno = E2BIG;
 		return -1;
 	}
 	if (!cb) {

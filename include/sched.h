@@ -74,6 +74,8 @@ int     sched_yield(void);
 #define CLONE_NEWPID	0x20000000
 #define CLONE_NEWNET	0x40000000
 #define CLONE_IO	0x80000000
+#define CLONE_CLEAR_SIGHAND 0x100000000ULL
+#define CLONE_INTO_CGROUP 0x200000000ULL
 int clone (int (*)(void *), void *, int, void *, ...);
 int unshare(int);
 int setns(int, int);
