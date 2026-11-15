@@ -8,8 +8,10 @@
  * The kernel sets the child rsp to stack+stack_size, so the argument
  * slot is pushed at top-8 and read back without moving rsp: a C
  * wrapper cannot return through a switched stack, which is why this
- * must be assembly. Raw kernel result: child pid, 0 in the child,
- * or -errno. */
+ * must be assembly. __clone3_launch guarantees the supplied top is
+ * 16-byte aligned (thread stacks are routinely only 8-aligned), so
+ * the aligned slot computed here and rsp-8 in the child agree. Raw
+ * kernel result: child pid, 0 in the child, or -errno. */
 __clone3_entry:
 	mov %rdx,%r9
 	mov 40(%rdi),%rax
