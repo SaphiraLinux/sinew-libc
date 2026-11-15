@@ -6,20 +6,29 @@
 
 char *getcwd(char *buf, size_t size)
 {
-	char tmp[buf ? 1 : PATH_MAX];
-	if (!buf) {
-		buf = tmp;
-		size = sizeof tmp;
-	} else if (!size) {
-		errno = EINVAL;
-		return 0;
+	if (buf) {
+		long ret;
+		if (!size) {
+			errno = EINVAL;
+			return 0;
+		}
+		ret = syscall(SYS_getcwd, buf, size);
+		if (ret < 0)
+			return 0;
+		if (ret == 0 || buf[0] != '/') {
+			errno = ENOENT;
+			return 0;
+		}
+		return buf;
+	} else {
+		char tmp[PATH_MAX];
+		long ret = syscall(SYS_getcwd, tmp, sizeof tmp);
+		if (ret < 0)
+			return 0;
+		if (ret == 0 || tmp[0] != '/') {
+			errno = ENOENT;
+			return 0;
+		}
+		return strdup(tmp);
 	}
-	long ret = syscall(SYS_getcwd, buf, size);
-	if (ret < 0)
-		return 0;
-	if (ret == 0 || buf[0] != '/') {
-		errno = ENOENT;
-		return 0;
-	}
-	return buf == tmp ? strdup(buf) : buf;
 }

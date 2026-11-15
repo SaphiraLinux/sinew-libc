@@ -40,13 +40,15 @@ long __syscall_cp_c(syscall_arg_t nr,
 static void _sigaddset(sigset_t *set, int sig)
 {
 	unsigned s = sig-1;
-	set->__bits[s/8/sizeof *set->__bits] |= 1UL<<(s&8*sizeof *set->__bits-1);
+	set->__bits[s/8/sizeof *set->__bits] |= 1UL<<(s&(8*sizeof *set->__bits-1));
 }
 
 extern hidden const char __cp_begin[1], __cp_end[1], __cp_cancel[1];
 
 static void cancel_handler(int sig, siginfo_t *si, void *ctx)
 {
+	(void)sig;
+	(void)si;
 	pthread_t self = __pthread_self();
 	ucontext_t *uc = ctx;
 	uintptr_t pc = uc->uc_mcontext.MC_PC;

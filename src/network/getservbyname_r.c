@@ -24,7 +24,7 @@ int getservbyname_r(const char *name, const char *prots,
 	if (!*end) return ENOENT;
 
 	/* Align buffer */
-	align = -(uintptr_t)buf & ALIGN-1;
+	align = (-(uintptr_t)buf) & (ALIGN-1);
 	if (buflen < 2*sizeof(char *)+align)
 		return ERANGE;
 	buf += align;

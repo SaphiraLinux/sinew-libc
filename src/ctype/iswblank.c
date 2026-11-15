@@ -8,6 +8,7 @@ int iswblank(wint_t wc)
 
 int __iswblank_l(wint_t c, locale_t l)
 {
+	(void)l;
 	return iswblank(c);
 }
 

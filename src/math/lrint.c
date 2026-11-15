@@ -40,7 +40,12 @@ __attribute__((noinline))
 #endif
 static long lrint_slow(double x)
 {
+	/* Retained for compilers implementing STDC FENV_ACCESS; GCC
+	 * does not, so silence only its unknown-pragma complaint here. */
+	#pragma GCC diagnostic push
+	#pragma GCC diagnostic ignored "-Wunknown-pragmas"
 	#pragma STDC FENV_ACCESS ON
+	#pragma GCC diagnostic pop
 	int e;
 
 	e = fetestexcept(FE_INEXACT);

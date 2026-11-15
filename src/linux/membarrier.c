@@ -16,6 +16,7 @@ static sem_t barrier_sem;
 
 static void bcast_barrier(int s)
 {
+	(void)s;
 	sem_post(&barrier_sem);
 }
 

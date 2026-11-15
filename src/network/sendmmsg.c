@@ -13,7 +13,7 @@ int sendmmsg(int fd, struct mmsghdr *msgvec, unsigned int vlen, unsigned int fla
 	int i;
 	if (vlen > IOV_MAX) vlen = IOV_MAX; /* This matches the kernel. */
 	if (!vlen) return 0;
-	for (i=0; i<vlen; i++) {
+	for (i=0; (unsigned)i<vlen; i++) {
 		/* As an unfortunate inconsistency, the sendmmsg API uses
 		 * unsigned int for the resulting msg_len, despite sendmsg
 		 * returning ssize_t. However Linux limits the total bytes

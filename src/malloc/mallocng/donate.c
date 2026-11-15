@@ -15,7 +15,7 @@ static void donate(unsigned char *base, size_t len)
 	b -= b & (UNIT-1);
 	memset(base, 0, len);
 	for (int sc=47; sc>0 && b>a; sc-=4) {
-		if (b-a < (size_classes[sc]+1)*UNIT) continue;
+		if (b-a < (uintptr_t)((size_classes[sc]+1)*UNIT)) continue;
 		struct meta *m = alloc_meta();
 		m->avail_mask = 0;
 		m->freed_mask = 1;

@@ -28,6 +28,7 @@ hidden int __pthread_once_full(pthread_once_t *control, void (*init)(void))
 	case 1:
 		/* If this fails, so will __wait. */
 		a_cas(control, 1, 3);
+		/* fall through */
 	case 3:
 		__wait(control, 0, 3, 1);
 		continue;

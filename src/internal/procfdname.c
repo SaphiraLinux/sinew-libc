@@ -1,6 +1,6 @@
 #include "syscall.h"
 
-void __procfdname(char *buf, unsigned fd)
+void __procfdname(char buf[static 15+3*sizeof(int)], unsigned fd)
 {
 	unsigned i, j;
 	for (i=0; (buf[i] = "/proc/self/fd/"[i]); i++);

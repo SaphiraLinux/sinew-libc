@@ -108,7 +108,7 @@ static void _vsyslog(int priority, const char *message, va_list ap)
 	errno = errno_save;
 	l2 = vsnprintf(buf+l, sizeof buf - l, message, ap);
 	if (l2 >= 0) {
-		if (l2 >= sizeof buf - l) l = sizeof buf - 1;
+		if ((size_t)l2 >= sizeof buf - l) l = sizeof buf - 1;
 		else l += l2;
 		if (buf[l-1] != '\n') buf[l++] = '\n';
 		if (send(log_fd, buf, l, 0) < 0 && (!is_lost_conn(errno)

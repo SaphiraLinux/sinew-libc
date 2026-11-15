@@ -13,6 +13,7 @@ int iswpunct(wint_t wc)
 
 int __iswpunct_l(wint_t c, locale_t l)
 {
+	(void)l;
 	return iswpunct(c);
 }
 

@@ -3,6 +3,8 @@
 
 static int stub_dladdr(const void *addr, Dl_info *info)
 {
+	(void)addr;
+	(void)info;
 	return 0;
 }
 

@@ -15,7 +15,7 @@ size_t fread(void *restrict destv, size_t size, size_t nmemb, FILE *restrict f)
 
 	if (f->rpos != f->rend) {
 		/* First exhaust the buffer. */
-		k = MIN(f->rend - f->rpos, l);
+		k = MIN((size_t)(f->rend - f->rpos), l);
 		memcpy(dest, f->rpos, k);
 		f->rpos += k;
 		dest += k;

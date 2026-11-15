@@ -97,7 +97,7 @@ static const unsigned short rev_jis[] = {
 static int fuzzycmp(const unsigned char *a, const unsigned char *b)
 {
 	for (; *a && *b; a++, b++) {
-		while (*a && (*a|32U)-'a'>26 && *a-'0'>10U) a++;
+		while (*a && (unsigned)((*a|32U)-'a')>26 && (unsigned)(*a-'0')>10U) a++;
 		if ((*a|32U) != *b) return 1;
 	}
 	return *a != *b;
@@ -146,8 +146,8 @@ iconv_t iconv_open(const char *to, const char *from)
 	size_t f, t;
 	struct stateful_cd *scd;
 
-	if ((t = find_charmap(to))==-1
-	 || (f = find_charmap(from))==-1
+	if ((t = find_charmap(to))==(size_t)-1
+	 || (f = find_charmap(from))==(size_t)-1
 	 || (charmaps[t] >= 0330)) {
 		errno = EINVAL;
 		return (iconv_t)-1;
@@ -185,7 +185,7 @@ static void put_16(unsigned char *s, unsigned c, int e)
 static unsigned get_32(const unsigned char *s, int e)
 {
 	e &= 3;
-	return s[e]+0U<<24 | s[e^1]<<16 | s[e^2]<<8 | s[e^3];
+	return ((s[e]+0U)<<24) | (s[e^1]<<16) | (s[e^2]<<8) | s[e^3];
 }
 
 static void put_32(unsigned char *s, unsigned c, int e)
@@ -205,7 +205,7 @@ static unsigned legacy_map(const unsigned char *map, unsigned c)
 {
 	if (c < 4*map[-1]) return c;
 	unsigned x = c - 4*map[-1];
-	x = map[x*5/4]>>2*x%8 | map[x*5/4+1]<<8-2*x%8 & 1023;
+	x = (map[x*5/4]>>(2*x%8)) | ((map[x*5/4+1]<<(8-2*x%8)) & 1023);
 	return x < 256 ? x : legacy_chars[x-256];
 }
 
@@ -292,7 +292,7 @@ size_t iconv(iconv_t cd, char **restrict in, size_t *restrict inb, char **restri
 			c = get_16((void *)*in, type);
 			if ((unsigned)(c-0xdc00) < 0x400) goto ilseq;
 			if ((unsigned)(c-0xd800) < 0x400) {
-				if (type-UCS2BE < 2U) goto ilseq;
+				if ((unsigned)(type-UCS2BE) < 2U) goto ilseq;
 				l = 4;
 				if (*inb < 4) goto starved;
 				d = get_16((void *)(*in + 2), type);
@@ -411,11 +411,13 @@ size_t iconv(iconv_t cd, char **restrict in, size_t *restrict inb, char **restri
 		case GB2312:
 			if (c < 128) break;
 			if (c < 0xa1) goto ilseq;
+			/* fall through */
 		case GBK:
 			if (c == 128) {
 				c = 0x20ac;
 				break;
 			}
+			/* fall through */
 		case GB18030:
 			if (c < 128) break;
 			c -= 0x81;
@@ -517,7 +519,7 @@ size_t iconv(iconv_t cd, char **restrict in, size_t *restrict inb, char **restri
 			if (c >= 93 || d >= 94) {
 				c += (0xa1-0x81);
 				d += 0xa1;
-				if (c > 0xc6-0x81 || c==0xc6-0x81 && d>0x52)
+				if ((c > 0xc6-0x81) || (c==0xc6-0x81 && d>0x52))
 					goto ilseq;
 				if (d-'A'<26) d = d-'A';
 				else if (d-'a'<26) d = d-'a'+26;
@@ -569,6 +571,7 @@ size_t iconv(iconv_t cd, char **restrict in, size_t *restrict inb, char **restri
 			break;
 		case US_ASCII:
 			if (c > 0x7f) subst: x++, c='*';
+			/* fall through */
 		default:
 			if (*outb < 1) goto toobig;
 			if (c<256 && c==legacy_map(tomap, c)) {
@@ -660,12 +663,13 @@ size_t iconv(iconv_t cd, char **restrict in, size_t *restrict inb, char **restri
 			break;
 		case UCS2:
 			totype = UCS2BE;
+			/* fall through */
 		case UCS2BE:
 		case UCS2LE:
 		case UTF_16:
 		case UTF_16BE:
 		case UTF_16LE:
-			if (c < 0x10000 || totype-UCS2BE < 2U) {
+			if ((c < 0x10000) || ((unsigned)(totype-UCS2BE) < 2U)) {
 				if (c >= 0x10000) c = 0xFFFD;
 				if (*outb < 2) goto toobig;
 				put_16((void *)*out, c, totype);
@@ -682,6 +686,7 @@ size_t iconv(iconv_t cd, char **restrict in, size_t *restrict inb, char **restri
 			break;
 		case UTF_32:
 			totype = UTF_32BE;
+			/* fall through */
 		case UTF_32BE:
 		case UTF_32LE:
 			if (*outb < 4) goto toobig;

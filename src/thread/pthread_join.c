@@ -4,6 +4,7 @@
 
 static void dummy1(pthread_t t)
 {
+	(void)t;
 }
 weak_alias(dummy1, __tl_sync);
 

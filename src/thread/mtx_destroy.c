@@ -2,4 +2,5 @@
 
 void mtx_destroy(mtx_t *mtx)
 {
+	(void)mtx;
 }

@@ -10,6 +10,7 @@ int strcasecmp(const char *_l, const char *_r)
 
 int __strcasecmp_l(const char *l, const char *r, locale_t loc)
 {
+	(void)loc;
 	return strcasecmp(l, r);
 }
 

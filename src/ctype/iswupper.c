@@ -7,6 +7,7 @@ int iswupper(wint_t wc)
 
 int __iswupper_l(wint_t c, locale_t l)
 {
+	(void)l;
 	return iswupper(c);
 }
 

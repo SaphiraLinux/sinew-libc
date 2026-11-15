@@ -8,6 +8,7 @@ int isdigit(int c)
 
 int __isdigit_l(int c, locale_t l)
 {
+	(void)l;
 	return isdigit(c);
 }
 

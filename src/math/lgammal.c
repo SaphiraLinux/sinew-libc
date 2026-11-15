@@ -221,7 +221,11 @@ static long double sin_pi(long double x)
 }
 
 long double __lgammal_r(long double x, int *sg) {
-	long double t, y, z, nadj, p, p1, p2, q, r, w;
+	/* r and nadj are set on every path reaching their uses below
+	 * (exhaustive branch chains, nadj dominated by the same sign
+	 * test); the initializers only silence a flow-analysis
+	 * false positive and are never observed. */
+	long double t, y, z, nadj=0, p, p1, p2, q, r=0, w;
 	union ldshape u = {x};
 	uint32_t ix = (u.i.se & 0x7fffU)<<16 | u.i.m>>48;
 	int sign = u.i.se >> 15;

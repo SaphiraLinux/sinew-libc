@@ -72,11 +72,13 @@ wint_t towupper(wint_t wc)
 
 wint_t __towupper_l(wint_t c, locale_t l)
 {
+	(void)l;
 	return towupper(c);
 }
 
 wint_t __towlower_l(wint_t c, locale_t l)
 {
+	(void)l;
 	return towlower(c);
 }
 

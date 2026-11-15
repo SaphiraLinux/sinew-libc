@@ -19,12 +19,12 @@
 /* Convenient bit representation for modifier flags, which all fall
  * within 31 codepoints of the space character. */
 
-#define ALT_FORM   (1U<<'#'-' ')
-#define ZERO_PAD   (1U<<'0'-' ')
-#define LEFT_ADJ   (1U<<'-'-' ')
-#define PAD_POS    (1U<<' '-' ')
-#define MARK_POS   (1U<<'+'-' ')
-#define GROUPED    (1U<<'\''-' ')
+#define ALT_FORM   (1U<<('#'-' '))
+#define ZERO_PAD   (1U<<('0'-' '))
+#define LEFT_ADJ   (1U<<('-'-' '))
+#define PAD_POS    (1U<<(' '-' '))
+#define MARK_POS   (1U<<('+'-' '))
+#define GROUPED    (1U<<('\''-' '))
 
 #define FLAGMASK (ALT_FORM|ZERO_PAD|LEFT_ADJ|PAD_POS|MARK_POS|GROUPED)
 
@@ -140,14 +140,14 @@ static void pad(FILE *f, char c, int w, int l, int fl)
 	char pad[256];
 	if (fl & (LEFT_ADJ | ZERO_PAD) || l >= w) return;
 	l = w - l;
-	memset(pad, c, l>sizeof pad ? sizeof pad : l);
-	for (; l >= sizeof pad; l -= sizeof pad)
+	memset(pad, c, (size_t)l>sizeof pad ? sizeof pad : (size_t)l);
+	for (; (size_t)l >= sizeof pad; l -= sizeof pad)
 		out(f, pad, sizeof pad);
 	out(f, pad, l);
 }
 
 static const char xdigits[16] = {
-	"0123456789ABCDEF"
+	'0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F'
 };
 
 static char *fmt_x(uintmax_t x, char *s, int lower)
@@ -291,7 +291,7 @@ static int fmt_fp(FILE *f, long double y, int w, int p, int fl, int t, int ps)
 		uint32_t carry=0, *b;
 		int sh=MIN(9,-e2), need=1+(p+LDBL_MANT_DIG/3U+8)/9;
 		for (d=a; d<z; d++) {
-			uint32_t rm = *d & (1<<sh)-1;
+			uint32_t rm = *d & ((1<<sh)-1);
 			*d = (*d>>sh) + carry;
 			carry = (1000000000>>sh) * rm;
 		}
@@ -303,7 +303,7 @@ static int fmt_fp(FILE *f, long double y, int w, int p, int fl, int t, int ps)
 		e2+=sh;
 	}
 
-	if (a<z) for (i=10, e=9*(r-a); *a>=i; i*=10, e++);
+	if (a<z) for (i=10, e=9*(r-a); *a>=(uint32_t)i; i*=10, e++);
 	else e=0;
 
 	/* Perform rounding: j is precision after the radix (possibly neg) */
@@ -322,8 +322,8 @@ static int fmt_fp(FILE *f, long double y, int w, int p, int fl, int t, int ps)
 			long double small;
 			if ((*d/i & 1) || (i==1000000000 && d>a && (d[-1]&1)))
 				round += 2;
-			if (x<i/2) small=0x0.8p0;
-			else if (x==i/2 && d+1==z) small=0x1.0p0;
+			if (x<(uint32_t)(i/2)) small=0x0.8p0;
+			else if (x==(uint32_t)(i/2) && d+1==z) small=0x1.0p0;
 			else small=0x1.8p0;
 			if (pl && *prefix=='-') round*=-1, small*=-1;
 			*d -= x;
@@ -335,7 +335,7 @@ static int fmt_fp(FILE *f, long double y, int w, int p, int fl, int t, int ps)
 					if (d<a) *--a=0;
 					(*d)++;
 				}
-				for (i=10, e=9*(r-a); *a>=i; i*=10, e++);
+				for (i=10, e=9*(r-a); *a>=(uint32_t)i; i*=10, e++);
 			}
 		}
 		if (z>d+1) z=d+1;
@@ -421,7 +421,7 @@ static int fmt_fp(FILE *f, long double y, int w, int p, int fl, int t, int ps)
 static int getint(char **s) {
 	int i;
 	for (i=0; isdigit(**s); (*s)++) {
-		if (i > INT_MAX/10U || **s-'0' > INT_MAX-10*i) i = -1;
+		if ((unsigned)i > INT_MAX/10U || **s-'0' > INT_MAX-10*i) i = -1;
 		else i = 10*i + (**s-'0');
 	}
 	return i;
@@ -471,8 +471,8 @@ static int printf_core(FILE *f, const char *fmt, va_list *ap, union arg *nl_arg,
 		}
 
 		/* Read modifier flags */
-		for (fl=0; (unsigned)*s-' '<32 && (FLAGMASK&(1U<<*s-' ')); s++)
-			fl |= 1U<<*s-' ';
+		for (fl=0; (unsigned)*s-' '<32 && (FLAGMASK&(1U<<(*s-' '))); s++)
+			fl |= 1U<<(*s-' ');
 
 		/* Read field width */
 		if (*s=='*') {
@@ -558,9 +558,10 @@ static int printf_core(FILE *f, const char *fmt, va_list *ap, union arg *nl_arg,
 			}
 			continue;
 		case 'p':
-			p = MAX(p, 2*sizeof(void*));
+			p = MAX(p, (int)(2*sizeof(void*)));
 			t = 'x';
 			fl |= ALT_FORM;
+			/* fall through */
 		case 'x': case 'X':
 			a = fmt_x(arg.i, z, t&32);
 			if (arg.i && (fl & ALT_FORM)) prefix+=(t>>4), pl=2;
@@ -571,13 +572,14 @@ static int printf_core(FILE *f, const char *fmt, va_list *ap, union arg *nl_arg,
 			goto ifmt_tail;
 		case 'd': case 'i':
 			pl=1;
-			if (arg.i>INTMAX_MAX) {
+			if (arg.i>(uintmax_t)INTMAX_MAX) {
 				arg.i=-arg.i;
 			} else if (fl & MARK_POS) {
 				prefix++;
 			} else if (fl & PAD_POS) {
 				prefix+=2;
 			} else pl=0;
+			/* fall through */
 		case 'u':
 			a = fmt_u(arg.i, z);
 		ifmt_tail:
@@ -596,6 +598,7 @@ static int printf_core(FILE *f, const char *fmt, va_list *ap, union arg *nl_arg,
 			break;
 		case 'm':
 			if (1) a = strerror(errno); else
+			/* fall through */
 		case 's':
 			a = arg.p ? arg.p : "(null)";
 			z = a + strnlen(a, p<0 ? INT_MAX : p);
@@ -609,15 +612,16 @@ static int printf_core(FILE *f, const char *fmt, va_list *ap, union arg *nl_arg,
 			wc[1] = 0;
 			arg.p = wc;
 			p = -1;
+			/* fall through */
 		case 'S':
 			ws = arg.p;
-			for (i=l=0; i<p && *ws && (l=wctomb(mb, *ws++))>=0 && l<=p-i; i+=l);
+			for (i=l=0; i<(size_t)p && *ws && (l=wctomb(mb, *ws++))>=0 && (size_t)l<=(size_t)(p-i); i+=l);
 			if (l<0) return -1;
 			if (i > INT_MAX) goto overflow;
 			p = i;
 			pad(f, ' ', w, p, fl);
 			ws = arg.p;
-			for (i=0; i<0U+p && *ws && i+(l=wctomb(mb, *ws++))<=p; i+=l)
+			for (i=0; i<0U+p && *ws && (size_t)(i+(l=wctomb(mb, *ws++)))<=(size_t)p; i+=l)
 				out(f, mb, l);
 			pad(f, ' ', w, p, fl^LEFT_ADJ);
 			l = w>p ? w : p;

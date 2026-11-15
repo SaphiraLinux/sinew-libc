@@ -18,7 +18,7 @@ size_t __stdio_write(FILE *f, const unsigned char *buf, size_t len)
 	}
 	for (;;) {
 		cnt = syscall(SYS_writev, f->fd, iov, iovcnt);
-		if (cnt == rem) {
+		if ((size_t)cnt == rem) {
 			f->wend = f->buf + f->buf_size;
 			f->wpos = f->wbase = f->buf;
 			return len;
@@ -29,7 +29,7 @@ size_t __stdio_write(FILE *f, const unsigned char *buf, size_t len)
 			return iovcnt == 2 ? 0 : len-iov[0].iov_len;
 		}
 		rem -= cnt;
-		if (cnt > iov[0].iov_len) {
+		if ((size_t)cnt > iov[0].iov_len) {
 			cnt -= iov[0].iov_len;
 			iov++; iovcnt--;
 		}

@@ -61,6 +61,7 @@ hidden long __syscall_ret(unsigned long),
 static inline long __alt_socketcall(int sys, int sock, int cp, syscall_arg_t a, syscall_arg_t b, syscall_arg_t c, syscall_arg_t d, syscall_arg_t e, syscall_arg_t f)
 {
 	long r;
+	(void)sock; /* used only under SYS_socketcall below */
 	if (cp) r = __syscall_cp(sys, a, b, c, d, e, f);
 	else r = __syscall(sys, a, b, c, d, e, f);
 	if (r != -ENOSYS) return r;

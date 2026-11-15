@@ -8,6 +8,7 @@ int isprint(int c)
 
 int __isprint_l(int c, locale_t l)
 {
+	(void)l;
 	return isprint(c);
 }
 

@@ -9,6 +9,7 @@ int iswdigit(wint_t wc)
 
 int __iswdigit_l(wint_t c, locale_t l)
 {
+	(void)l;
 	return iswdigit(c);
 }
 

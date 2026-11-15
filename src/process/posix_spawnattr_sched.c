@@ -5,21 +5,29 @@
 int posix_spawnattr_getschedparam(const posix_spawnattr_t *restrict attr,
 	struct sched_param *restrict schedparam)
 {
+	(void)attr;
+	(void)schedparam;
 	return ENOSYS;
 }
 
 int posix_spawnattr_setschedparam(posix_spawnattr_t *restrict attr,
 	const struct sched_param *restrict schedparam)
 {
+	(void)attr;
+	(void)schedparam;
 	return ENOSYS;
 }
 
 int posix_spawnattr_getschedpolicy(const posix_spawnattr_t *restrict attr, int *restrict policy)
 {
+	(void)attr;
+	(void)policy;
 	return ENOSYS;
 }
 
 int posix_spawnattr_setschedpolicy(posix_spawnattr_t *attr, int policy)
 {
+	(void)attr;
+	(void)policy;
 	return ENOSYS;
 }

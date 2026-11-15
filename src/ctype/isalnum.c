@@ -7,6 +7,7 @@ int isalnum(int c)
 
 int __isalnum_l(int c, locale_t l)
 {
+	(void)l;
 	return isalnum(c);
 }
 

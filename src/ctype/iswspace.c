@@ -18,6 +18,7 @@ int iswspace(wint_t wc)
 
 int __iswspace_l(wint_t c, locale_t l)
 {
+	(void)l;
 	return iswspace(c);
 }
 

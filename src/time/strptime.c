@@ -71,7 +71,7 @@ char *strptime(const char *restrict s, const char *restrict f, struct tm *restri
 			char tmp[20];
 			if (*s == '-' || *s == '+') tmp[i++] = *s++;
 			while (*s=='0' && isdigit(s[1])) s++;
-			for (; *s && i<(size_t)w && i+1<sizeof tmp; i++) {
+			for (; *s && (size_t)i<(size_t)w && (size_t)(i+1)<sizeof tmp; i++) {
 				tmp[i] = *s++;
 			}
 			tmp[i] = 0;
@@ -268,7 +268,7 @@ char *strptime(const char *restrict s, const char *restrict f, struct tm *restri
 			*dest = 0;
 			for (i=1; i<=min+range && isdigit(*s); i*=10)
 				*dest = *dest * 10 + *s++ - '0';
-			if (*dest - min >= (unsigned)range) return 0;
+			if ((unsigned)(*dest - min) >= (unsigned)range) return 0;
 			*dest -= adj;
 			switch((char *)dest - (char *)tm) {
 			case offsetof(struct tm, tm_yday):

@@ -8,6 +8,7 @@ int isgraph(int c)
 
 int __isgraph_l(int c, locale_t l)
 {
+	(void)l;
 	return isgraph(c);
 }
 

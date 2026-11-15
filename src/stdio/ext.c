@@ -9,6 +9,8 @@ void _flushlbf(void)
 
 int __fsetlocking(FILE *f, int type)
 {
+	(void)f;
+	(void)type;
 	return 0;
 }
 

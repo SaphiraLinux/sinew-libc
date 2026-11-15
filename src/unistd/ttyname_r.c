@@ -15,7 +15,7 @@ int ttyname_r(int fd, char *name, size_t size)
 	l = readlink(procname, name, size);
 
 	if (l < 0) return errno;
-	else if (l == size) return ERANGE;
+	else if ((size_t)l == size) return ERANGE;
 
 	name[l] = 0;
 

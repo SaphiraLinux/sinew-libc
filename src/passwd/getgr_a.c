@@ -33,8 +33,8 @@ int __getgr_a(const char *name, gid_t gid, struct group *gr, char **buf, size_t 
 	}
 
 	while (!(rv = __getgrent_a(f, gr, buf, size, mem, nmem, res)) && *res) {
-		if (name && !strcmp(name, (*res)->gr_name)
-		|| !name && (*res)->gr_gid == gid) {
+		if ((name && !strcmp(name, (*res)->gr_name))
+		|| (!name && (*res)->gr_gid == gid)) {
 			break;
 		}
 	}
@@ -54,7 +54,7 @@ int __getgr_a(const char *name, gid_t gid, struct group *gr, char **buf, size_t 
 		if (name) {
 			key = name;
 		} else {
-			if (gid < 0 || gid > UINT32_MAX) {
+			if (gid > UINT32_MAX) {
 				rv = 0;
 				goto done;
 			}
@@ -71,11 +71,11 @@ int __getgr_a(const char *name, gid_t gid, struct group *gr, char **buf, size_t 
 			goto cleanup_f;
 		}
 
-		if (groupbuf[GRMEMCNT] > (size_t)(INT32_MAX-1)) {
+		if ((size_t)groupbuf[GRMEMCNT] > (size_t)(INT32_MAX-1)) {
 			rv = ENOMEM;
 			goto cleanup_f;
 		}
-		if (groupbuf[GRNAMELEN] > SIZE_MAX - groupbuf[GRPASSWDLEN]) {
+		if ((size_t)groupbuf[GRNAMELEN] > SIZE_MAX - (size_t)groupbuf[GRPASSWDLEN]) {
 			rv = ENOMEM;
 			goto cleanup_f;
 		}
@@ -114,8 +114,8 @@ int __getgr_a(const char *name, gid_t gid, struct group *gr, char **buf, size_t 
 			goto cleanup_f;
 		}
 
-		if (groupbuf[GRMEMCNT] + 1 > *nmem) {
-			if (groupbuf[GRMEMCNT] + 1 > SIZE_MAX/sizeof(char*)) {
+		if ((size_t)(groupbuf[GRMEMCNT] + 1) > *nmem) {
+			if ((size_t)(groupbuf[GRMEMCNT] + 1) > SIZE_MAX/sizeof(char*)) {
 				rv = ENOMEM;
 				goto cleanup_f;
 			}
@@ -131,13 +131,14 @@ int __getgr_a(const char *name, gid_t gid, struct group *gr, char **buf, size_t 
 		if (groupbuf[GRMEMCNT]) {
 			mem[0][0] = *buf + groupbuf[GRNAMELEN] + groupbuf[GRPASSWDLEN];
 			for (ptr = mem[0][0], i = 0; ptr != mem[0][0]+grlist_len; ptr++)
-				if (!*ptr)
+				if (!*ptr) {
 					if (i<groupbuf[GRMEMCNT]) {
 						mem[0][++i] = ptr+1;
 					} else {
 						rv = EIO;
 						goto cleanup_f;
 					}
+				}
 			mem[0][i] = 0;
 
 			if (i != groupbuf[GRMEMCNT]) {
@@ -159,8 +160,8 @@ int __getgr_a(const char *name, gid_t gid, struct group *gr, char **buf, size_t 
 			goto cleanup_f;
 		}
 
-		if (name && strcmp(name, gr->gr_name)
-		|| !name && gid != gr->gr_gid) {
+		if ((name && strcmp(name, gr->gr_name))
+		|| (!name && gid != gr->gr_gid)) {
 			rv = EIO;
 			goto cleanup_f;
 		}

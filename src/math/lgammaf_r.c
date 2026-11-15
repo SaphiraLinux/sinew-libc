@@ -105,7 +105,11 @@ static float sin_pi(float x)
 float __lgammaf_r(float x, int *signgamp)
 {
 	union {float f; uint32_t i;} u = {x};
-	float t,y,z,nadj,p,p1,p2,p3,q,r,w;
+	/* r and nadj are set on every path reaching their uses below
+	 * (exhaustive branch chains, nadj dominated by the same sign
+	 * test); the initializers only silence a flow-analysis
+	 * false positive and are never observed. */
+	float t,y,z,nadj=0,p,p1,p2,p3,q,r=0,w;
 	uint32_t ix;
 	int i,sign;
 

@@ -7,11 +7,20 @@
 
 static ssize_t vstrfmon_l(char *s, size_t n, locale_t loc, const char *fmt, va_list ap)
 {
+	(void)loc;
 	size_t l;
 	double x;
 	int fill, nogrp, negpar, nosym, left, intl;
 	int lp, rp, w, fw;
 	char *s0=s;
+	/* The flags below are consumed so format parsing stays aligned,
+	 * but this minimal implementation does not honor them. The void
+	 * casts document the stores as intentionally write-only. */
+	(void)fill;
+	(void)nogrp;
+	(void)negpar;
+	(void)nosym;
+	(void)intl;
 	for (; n && *fmt; ) {
 		if (*fmt != '%') {
 		literal:

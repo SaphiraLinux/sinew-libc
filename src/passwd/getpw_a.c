@@ -34,8 +34,8 @@ int __getpw_a(const char *name, uid_t uid, struct passwd *pw, char **buf, size_t
 	}
 
 	while (!(rv = __getpwent_a(f, pw, buf, size, res)) && *res) {
-		if (name && !strcmp(name, (*res)->pw_name)
-		|| !name && (*res)->pw_uid == uid)
+		if ((name && !strcmp(name, (*res)->pw_name))
+		|| (!name && (*res)->pw_uid == uid))
 			break;
 	}
 	fclose(f);
@@ -55,7 +55,7 @@ int __getpw_a(const char *name, uid_t uid, struct passwd *pw, char **buf, size_t
 			 * happens to be a larger type (this is not true as of
 			 * now)
 			 */
-			if(uid < 0 || uid > UINT32_MAX) {
+			if(uid > UINT32_MAX) {
 				rv = 0;
 				goto done;
 			}
@@ -78,7 +78,7 @@ int __getpw_a(const char *name, uid_t uid, struct passwd *pw, char **buf, size_t
 			goto cleanup_f;
 		}
 
-		if ((passwdbuf[PWNAMELEN]|passwdbuf[PWPASSWDLEN]
+		if ((size_t)(passwdbuf[PWNAMELEN]|passwdbuf[PWPASSWDLEN]
 		     |passwdbuf[PWGECOSLEN]|passwdbuf[PWDIRLEN]
 		     |passwdbuf[PWSHELLLEN]) >= SIZE_MAX/8) {
 			rv = ENOMEM;
@@ -122,8 +122,8 @@ int __getpw_a(const char *name, uid_t uid, struct passwd *pw, char **buf, size_t
 			goto cleanup_f;
 		}
 
-		if (name && strcmp(name, pw->pw_name)
-		|| !name && uid != pw->pw_uid) {
+		if ((name && strcmp(name, pw->pw_name))
+		|| (!name && uid != pw->pw_uid)) {
 			rv = EIO;
 			goto cleanup_f;
 		}

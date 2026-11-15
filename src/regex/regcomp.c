@@ -481,11 +481,11 @@ static int add_icase_literals(struct literals *ls, int min, int max)
 		if (tre_islower(c)) {
 			b = e = tre_toupper(c);
 			for (c++, e++; c<=max; c++, e++)
-				if (tre_toupper(c) != e) break;
+				if ((int)tre_toupper(c) != e) break;
 		} else if (tre_isupper(c)) {
 			b = e = tre_tolower(c);
 			for (c++, e++; c<=max; c++, e++)
-				if (tre_tolower(c) != e) break;
+				if ((int)tre_tolower(c) != e) break;
 		} else {
 			c++;
 			continue;
@@ -856,6 +856,7 @@ static reg_errcode_t parse_atom(tre_parse_ctx_t *ctx, const char *s)
 			/* reject repetitions after empty expression in BRE */
 			if (!ere)
 				return REG_BADRPT;
+			/* fall through */
 		case '|':
 			/* extension: treat \| as alternation in BRE */
 			if (!ere) {
@@ -915,9 +916,11 @@ static reg_errcode_t parse_atom(tre_parse_ctx_t *ctx, const char *s)
 		/* reject repetitions after empty expression in ERE */
 		if (ere)
 			return REG_BADRPT;
+		/* fall through */
 	case '|':
 		if (!ere)
 			goto parse_literal;
+		/* fall through */
 	case 0:
 		node = tre_ast_new_literal(ctx->mem, EMPTY, -1, -1);
 		break;

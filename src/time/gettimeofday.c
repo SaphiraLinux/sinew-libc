@@ -4,6 +4,7 @@
 
 int gettimeofday(struct timeval *restrict tv, void *restrict tz)
 {
+	(void)tz;
 	struct timespec ts;
 	if (!tv) return 0;
 	clock_gettime(CLOCK_REALTIME, &ts);

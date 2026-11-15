@@ -7,6 +7,7 @@ int iscntrl(int c)
 
 int __iscntrl_l(int c, locale_t l)
 {
+	(void)l;
 	return iscntrl(c);
 }
 

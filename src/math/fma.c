@@ -41,7 +41,12 @@ static void mul(uint64_t *hi, uint64_t *lo, uint64_t x, uint64_t y)
 
 double fma(double x, double y, double z)
 {
+	/* Retained for compilers implementing STDC FENV_ACCESS; GCC
+	 * does not, so silence only its unknown-pragma complaint here. */
+	#pragma GCC diagnostic push
+	#pragma GCC diagnostic ignored "-Wunknown-pragmas"
 	#pragma STDC FENV_ACCESS ON
+	#pragma GCC diagnostic pop
 
 	/* normalize so top 10bits and last bit are 0 */
 	struct num nx, ny, nz;

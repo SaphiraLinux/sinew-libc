@@ -3,6 +3,8 @@
 
 static void *stub_dlopen(const char *file, int mode)
 {
+	(void)file;
+	(void)mode;
 	__dl_seterr("Dynamic loading not supported");
 	return 0;
 }

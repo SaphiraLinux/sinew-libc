@@ -12,6 +12,7 @@ static pthread_key_t next_key;
 
 static void nodtor(void *dummy)
 {
+	(void)dummy;
 }
 
 static void dummy_0(void)

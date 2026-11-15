@@ -117,7 +117,7 @@ static inline uint32_t activate_group(struct meta *m)
 	assert(!m->avail_mask);
 	uint32_t mask, act = (2u<<m->mem->active_idx)-1;
 	do mask = m->freed_mask;
-	while (a_cas(&m->freed_mask, mask, mask&~act)!=mask);
+	while ((uint32_t)a_cas(&m->freed_mask, mask, mask&~act)!=mask);
 	return m->avail_mask = mask & act;
 }
 
@@ -146,8 +146,8 @@ static inline struct meta *get_meta(const unsigned char *p)
 	const struct meta_area *area = (void *)((uintptr_t)meta & -4096);
 	assert(area->check == ctx.secret);
 	if (meta->sizeclass < 48) {
-		assert(offset >= size_classes[meta->sizeclass]*index);
-		assert(offset < size_classes[meta->sizeclass]*(index+1));
+		assert(offset >= (size_t)(size_classes[meta->sizeclass]*index));
+		assert(offset < (size_t)(size_classes[meta->sizeclass]*(index+1)));
 	} else {
 		assert(meta->sizeclass == 63);
 	}
@@ -166,7 +166,7 @@ static inline size_t get_nominal_size(const unsigned char *p, const unsigned cha
 		assert(reserved >= 5);
 		assert(!end[-5]);
 	}
-	assert(reserved <= end-p);
+	assert(reserved <= (size_t)(end-p));
 	assert(!*(end-reserved));
 	// also check the slot's overflow byte
 	assert(!*end);
@@ -204,12 +204,12 @@ static inline void *enframe(struct meta *g, int idx, size_t n, int ctr)
 	// reuse, facilitate trapping double-free.
 	int off = (p[-3] ? *(uint16_t *)(p-2) + 1 : ctr) & 255;
 	assert(!p[-4]);
-	if (off > slack) {
+	if ((size_t)off > slack) {
 		size_t m = slack;
 		m |= m>>1; m |= m>>2; m |= m>>4;
 		off &= m;
-		if (off > slack) off -= slack+1;
-		assert(off <= slack);
+		if ((size_t)off > slack) off -= slack+1;
+		assert((size_t)off <= slack);
 	}
 	if (off) {
 		// store offset in unused header at offset zero

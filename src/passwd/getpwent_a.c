@@ -4,7 +4,7 @@
 static unsigned atou(char **s)
 {
 	unsigned x;
-	for (x=0; **s-'0'<10U; ++*s) x=10*x+(**s-'0');
+	for (x=0; (unsigned)(**s-'0')<10U; ++*s) x=10*x+(**s-'0');
 	return x;
 }
 

@@ -270,7 +270,7 @@ static char *sha256crypt(const char *key, const char *setting, char *output)
 
 	/* DS = sha(repeat-salt) */
 	sha256_init(&ctx);
-	for (i = 0; i < 16 + md[0]; i++)
+	for (i = 0; i < (unsigned)(16 + md[0]); i++)
 		sha256_update(&ctx, salt, slen);
 	sha256_sum(&ctx, smd);
 
@@ -296,8 +296,8 @@ static char *sha256crypt(const char *key, const char *setting, char *output)
 	p = output;
 	p += sprintf(p, "$5$%s%.*s$", rounds, slen, salt);
 	static const unsigned char perm[][3] = {
-		0,10,20,21,1,11,12,22,2,3,13,23,24,4,14,
-		15,25,5,6,16,26,27,7,17,18,28,8,9,19,29 };
+		{0,10,20},{21,1,11},{12,22,2},{3,13,23},{24,4,14},
+		{15,25,5},{6,16,26},{27,7,17},{18,28,8},{9,19,29} };
 	for (i=0; i<10; i++) p = to64(p,
 		(md[perm[i][0]]<<16)|(md[perm[i][1]]<<8)|md[perm[i][2]], 4);
 	p = to64(p, (md[31]<<8)|md[30], 3);

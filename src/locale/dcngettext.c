@@ -189,7 +189,7 @@ notrans:
 			snprintf(name, sizeof name, "%s/%.*s%.*s/%s/%s.mo\0",
 				dirname, (int)loclen, locname,
 				(int)alt_modlen, modname, catname, domainname);
-			if (map = __map_file(name, &map_size)) break;
+			if ((map = __map_file(name, &map_size))) break;
 
 			/* Try dropping @mod, _YY, then both. */
 			if (alt_modlen) {
@@ -254,7 +254,7 @@ notrans:
 
 	if (msgid2 && p->nplurals) {
 		unsigned long plural = __pleval(p->plural_rule, n);
-		if (plural > p->nplurals) goto notrans;
+		if (plural > (unsigned long)p->nplurals) goto notrans;
 		while (plural--) {
 			size_t rem = p->map_size - (trans - (char *)p->map);
 			size_t l = strnlen(trans, rem);

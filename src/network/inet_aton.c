@@ -24,9 +24,11 @@ int __inet_aton(const char *s0, struct in_addr *dest)
 	case 0:
 		a[1] = a[0] & 0xffffff;
 		a[0] >>= 24;
+		/* fall through */
 	case 1:
 		a[2] = a[1] & 0xffff;
 		a[1] >>= 16;
+		/* fall through */
 	case 2:
 		a[3] = a[2] & 0xff;
 		a[2] >>= 8;

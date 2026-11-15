@@ -43,10 +43,12 @@ void __funcs_on_exit()
 
 void __cxa_finalize(void *dso)
 {
+	(void)dso;
 }
 
 int __cxa_atexit(void (*func)(void *), void *arg, void *dso)
 {
+	(void)dso;
 	LOCK(lock);
 
 	/* Prevent dtors from registering further atexit

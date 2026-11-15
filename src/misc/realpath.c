@@ -93,7 +93,7 @@ restart:
 			if (!check_dir) goto skip_readlink;
 		}
 		ssize_t k = readlink(output, stack, p);
-		if (k==p) goto toolong;
+		if (k==(ssize_t)p) goto toolong;
 		if (!k) {
 			errno = ENOENT;
 			return 0;

@@ -50,6 +50,7 @@ void endprotoent(void)
 
 void setprotoent(int stayopen)
 {
+	(void)stayopen;
 	idx = 0;
 }
 
@@ -57,7 +58,7 @@ struct protoent *getprotoent(void)
 {
 	static struct protoent p;
 	static const char *aliases;
-	if (idx >= sizeof protos) return NULL;
+	if ((size_t)idx >= sizeof protos) return NULL;
 	p.p_proto = protos[idx];
 	p.p_name = (char *)&protos[idx+1];
 	p.p_aliases = (char **)&aliases;

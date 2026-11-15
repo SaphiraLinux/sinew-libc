@@ -5,6 +5,7 @@
 
 size_t wcrtomb(char *restrict s, wchar_t wc, mbstate_t *restrict st)
 {
+	(void)st;
 	if (!s) return 1;
 	if ((unsigned)wc < 0x80) {
 		*s = wc;

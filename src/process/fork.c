@@ -33,7 +33,7 @@ static volatile int *const *const atfork_locks[] = {
 	&__bump_lockptr,
 };
 
-static void dummy(int x) { }
+static void dummy(int x) { (void)x; }
 weak_alias(dummy, __fork_handler);
 weak_alias(dummy, __malloc_atfork);
 weak_alias(dummy, __aio_atfork);
@@ -55,7 +55,7 @@ pid_t fork(void)
 		__pthread_key_atfork(-1);
 		__aio_atfork(-1);
 		__inhibit_ptc();
-		for (int i=0; i<sizeof atfork_locks/sizeof *atfork_locks; i++)
+		for (int i=0; (size_t)i<sizeof atfork_locks/sizeof *atfork_locks; i++)
 			if (*atfork_locks[i]) LOCK(*atfork_locks[i]);
 		__malloc_atfork(-1);
 		__tl_lock();
@@ -74,10 +74,11 @@ pid_t fork(void)
 		}
 		__tl_unlock();
 		__malloc_atfork(!ret);
-		for (int i=0; i<sizeof atfork_locks/sizeof *atfork_locks; i++)
-			if (*atfork_locks[i])
+		for (int i=0; (size_t)i<sizeof atfork_locks/sizeof *atfork_locks; i++)
+			if (*atfork_locks[i]) {
 				if (ret) UNLOCK(*atfork_locks[i]);
 				else **atfork_locks[i] = 0;
+			}
 		__release_ptc();
 		if (ret) __aio_atfork(0);
 		__pthread_key_atfork(!ret);

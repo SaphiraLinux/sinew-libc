@@ -27,8 +27,10 @@ static int do_nftw(char *path, int (*fn)(const char *, const struct stat *, int,
 	struct history new;
 	int type;
 	int r;
-	int dfd;
-	int err;
+	/* Initialized: the guarded uses below are safe, but the fn()
+	 * callback between definition and use defeats the analysis. */
+	int dfd = -1;
+	int err = 0;
 	struct FTW lev;
 
 	st.st_dev = st.st_ino = 0;

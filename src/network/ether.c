@@ -44,15 +44,22 @@ char *ether_ntoa (const struct ether_addr *p_a) {
 
 int ether_line(const char *l, struct ether_addr *e, char *hostname)
 {
+	(void)l;
+	(void)e;
+	(void)hostname;
 	return -1;
 }
 
 int ether_ntohost(char *hostname, const struct ether_addr *e)
 {
+	(void)hostname;
+	(void)e;
 	return -1;
 }
 
 int ether_hostton(const char *hostname, struct ether_addr *e)
 {
+	(void)hostname;
+	(void)e;
 	return -1;
 }

@@ -2,6 +2,7 @@
 
 static void dummy(struct __ptcb *cb)
 {
+	(void)cb;
 }
 weak_alias(dummy, __do_cleanup_push);
 weak_alias(dummy, __do_cleanup_pop);

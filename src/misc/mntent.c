@@ -84,7 +84,8 @@ again:	do {
 		sscanf(linebuf, " %n%*[^ \t\n]%n %n%*[^ \t\n]%n %n%*[^ \t\n]%n %n%*[^ \t\n]%n %d %d",
 			n, n+1, n+2, n+3, n+4, n+5, n+6, n+7,
 			&mnt->mnt_freq, &mnt->mnt_passno);
-	} while (linebuf[n[0]] == '#' || n[1]==len);
+		/* len <= INT_MAX here (long lines loop back above), so the cast is exact. */
+		} while (linebuf[n[0]] == '#' || n[1]==(int)len);
 
 	linebuf[n[1]] = 0;
 	linebuf[n[3]] = 0;

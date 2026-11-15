@@ -66,6 +66,7 @@ int aio_suspend(const struct aiocb *const cbs[], int cnt, const struct timespec 
 		switch (ret) {
 		case ETIMEDOUT:
 			ret = EAGAIN;
+			/* fall through */
 		case ECANCELED:
 		case EINTR:
 			errno = ret;

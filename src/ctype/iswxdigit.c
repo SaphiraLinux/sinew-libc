@@ -7,6 +7,7 @@ int iswxdigit(wint_t wc)
 
 int __iswxdigit_l(wint_t c, locale_t l)
 {
+	(void)l;
 	return iswxdigit(c);
 }
 

@@ -63,11 +63,13 @@ wctype_t wctype(const char *s)
 
 int __iswctype_l(wint_t c, wctype_t t, locale_t l)
 {
+	(void)l;
 	return iswctype(c, t);
 }
 
 wctype_t __wctype_l(const char *s, locale_t l)
 {
+	(void)l;
 	return wctype(s);
 }
 

@@ -46,7 +46,7 @@ static void set_errno_noop(int);
 static void (*set_errno)(int) = set_errno_noop;
 
 #define MAXP2(a,b) (-(-(a)&-(b)))
-#define ALIGN(x,y) ((x)+(y)-1 & -(y))
+#define ALIGN(x,y) (((x)+(y)-1) & -(y))
 
 #define container_of(p,t,m) ((t*)((char *)(p)-offsetof(t,m)))
 #define countof(a) ((sizeof (a))/(sizeof (a)[0]))
@@ -386,7 +386,10 @@ static void do_relocs(struct dso *dso, size_t *rel, size_t rel_size, size_t stri
 	Sym *syms = dso->syms;
 	char *strings = dso->strings;
 	Sym *sym;
-	const char *name;
+	/* Always assigned before any use: the lookup below stores the
+	 * candidate name before every path that can reach the error
+	 * reporting. The initializer only quiets analysis. */
+	const char *name = 0;
 	void *ctx;
 	int type;
 	int sym_index;
@@ -468,6 +471,7 @@ static void do_relocs(struct dso *dso, size_t *rel, size_t rel_size, size_t stri
 		switch(type) {
 		case REL_OFFSET:
 			addend -= (size_t)reloc_addr;
+			/* fall through */
 		case REL_SYMBOLIC:
 		case REL_GOT:
 		case REL_PLT:
@@ -564,7 +568,10 @@ static void do_relr_relocs(struct dso *dso, size_t *relr, size_t relr_size)
 {
 	if (dso == &ldso) return; /* self-relocation was done in _dlstart */
 	unsigned char *base = dso->base;
-	size_t *reloc_addr;
+	/* The RELR format guarantees the first entry is an address, so
+	 * the bitmap branch always has a base by the time it runs.
+	 * The initializer only quiets analysis and is never observed. */
+	size_t *reloc_addr = 0;
 	for (; relr_size; relr++, relr_size-=sizeof(size_t))
 		if ((relr[0]&1) == 0) {
 			reloc_addr = laddr(dso, relr[0]);
@@ -623,7 +630,7 @@ static void reclaim_gaps(struct dso *dso)
 		if (ph->p_memsz == 0) continue;
 		reclaim(dso, ph->p_vaddr & -PAGE_SIZE, ph->p_vaddr);
 		reclaim(dso, ph->p_vaddr+ph->p_memsz,
-			ph->p_vaddr+ph->p_memsz+PAGE_SIZE-1 & -PAGE_SIZE);
+			(ph->p_vaddr+ph->p_memsz+PAGE_SIZE-1) & -PAGE_SIZE);
 	}
 }
 
@@ -706,7 +713,7 @@ static void *map_library(int fd, struct dso *dso)
 	ssize_t l = read(fd, buf, sizeof buf);
 	eh = buf;
 	if (l<0) return 0;
-	if (l<sizeof *eh || (eh->e_type != ET_DYN && eh->e_type != ET_EXEC))
+	if ((size_t)l<sizeof *eh || (eh->e_type != ET_DYN && eh->e_type != ET_EXEC))
 		goto noexec;
 	phsize = eh->e_phentsize * eh->e_phnum;
 	if (phsize > sizeof buf - sizeof *eh) {
@@ -714,12 +721,12 @@ static void *map_library(int fd, struct dso *dso)
 		if (!allocated_buf) return 0;
 		l = pread(fd, allocated_buf, phsize, eh->e_phoff);
 		if (l < 0) goto error;
-		if (l != phsize) goto noexec;
+		if ((size_t)l != phsize) goto noexec;
 		ph = ph0 = allocated_buf;
-	} else if (eh->e_phoff + phsize > l) {
+	} else if (eh->e_phoff + phsize > (size_t)l) {
 		l = pread(fd, buf+1, phsize, eh->e_phoff);
 		if (l < 0) goto error;
-		if (l != phsize) goto noexec;
+		if ((size_t)l != phsize) goto noexec;
 		ph = ph0 = (void *)(buf + 1);
 	} else {
 		ph = ph0 = (void *)((char *)buf + eh->e_phoff);
@@ -766,7 +773,7 @@ static void *map_library(int fd, struct dso *dso)
 			prot = (((ph->p_flags&PF_R) ? PROT_READ : 0) |
 				((ph->p_flags&PF_W) ? PROT_WRITE: 0) |
 				((ph->p_flags&PF_X) ? PROT_EXEC : 0));
-			map = mmap(0, ph->p_memsz + (ph->p_vaddr & PAGE_SIZE-1),
+			map = mmap(0, ph->p_memsz + (ph->p_vaddr & (PAGE_SIZE-1)),
 				prot, MAP_PRIVATE,
 				fd, ph->p_offset & -PAGE_SIZE);
 			if (map == MAP_FAILED) {
@@ -774,16 +781,15 @@ static void *map_library(int fd, struct dso *dso)
 				goto error;
 			}
 			dso->loadmap->segs[i].addr = (size_t)map +
-				(ph->p_vaddr & PAGE_SIZE-1);
+				(ph->p_vaddr & (PAGE_SIZE-1));
 			dso->loadmap->segs[i].p_vaddr = ph->p_vaddr;
 			dso->loadmap->segs[i].p_memsz = ph->p_memsz;
 			i++;
 			if (prot & PROT_WRITE) {
-				size_t brk = (ph->p_vaddr & PAGE_SIZE-1)
+				size_t brk = (ph->p_vaddr & (PAGE_SIZE-1))
 					+ ph->p_filesz;
-				size_t pgbrk = brk + PAGE_SIZE-1 & -PAGE_SIZE;
-				size_t pgend = brk + ph->p_memsz - ph->p_filesz
-					+ PAGE_SIZE-1 & -PAGE_SIZE;
+				size_t pgbrk = (brk + PAGE_SIZE-1) & -PAGE_SIZE;
+				size_t pgend = (brk + ph->p_memsz - ph->p_filesz + (PAGE_SIZE-1)) & -PAGE_SIZE;
 				if (pgend > pgbrk && mmap_fixed(map+pgbrk,
 					pgend-pgbrk, prot,
 					MAP_PRIVATE|MAP_FIXED|MAP_ANONYMOUS,
@@ -834,7 +840,7 @@ static void *map_library(int fd, struct dso *dso)
 			dso->phentsize = eh->e_phentsize;
 		}
 		this_min = ph->p_vaddr & -PAGE_SIZE;
-		this_max = ph->p_vaddr+ph->p_memsz+PAGE_SIZE-1 & -PAGE_SIZE;
+		this_max = (ph->p_vaddr+ph->p_memsz+PAGE_SIZE-1) & -PAGE_SIZE;
 		off_start = ph->p_offset & -PAGE_SIZE;
 		prot = (((ph->p_flags&PF_R) ? PROT_READ : 0) |
 			((ph->p_flags&PF_W) ? PROT_WRITE: 0) |
@@ -845,8 +851,8 @@ static void *map_library(int fd, struct dso *dso)
 				goto error;
 		if (ph->p_memsz > ph->p_filesz && (ph->p_flags&PF_W)) {
 			size_t brk = (size_t)base+ph->p_vaddr+ph->p_filesz;
-			size_t pgbrk = brk+PAGE_SIZE-1 & -PAGE_SIZE;
-			memset((void *)brk, 0, pgbrk-brk & PAGE_SIZE-1);
+			size_t pgbrk = (brk+PAGE_SIZE-1) & -PAGE_SIZE;
+			memset((void *)brk, 0, (pgbrk-brk) & (PAGE_SIZE-1));
 			if (pgbrk-(size_t)base < this_max && mmap_fixed((void *)pgbrk, (size_t)base+this_max-pgbrk, prot, MAP_PRIVATE|MAP_FIXED|MAP_ANONYMOUS, -1, 0) == MAP_FAILED)
 				goto error;
 		}
@@ -880,7 +886,7 @@ static int path_open(const char *name, const char *s, char *buf, size_t buf_size
 		s += strspn(s, ":\n");
 		l = strcspn(s, ":\n");
 		if (l-1 >= INT_MAX) return -1;
-		if (snprintf(buf, buf_size, "%.*s/%s", (int)l, s, name) < buf_size) {
+		if ((size_t)snprintf(buf, buf_size, "%.*s/%s", (int)l, s, name) < buf_size) {
 			if ((fd = open(buf, O_RDONLY|O_CLOEXEC))>=0) return fd;
 			switch (errno) {
 			case ENOENT:
@@ -928,7 +934,7 @@ static int fixup_rpath(struct dso *p, char *buf, size_t buf_size)
 		if (libc.secure)
 			return 0;
 		l = readlink("/proc/self/exe", buf, buf_size);
-		if (l == -1) switch (errno) {
+		if (l == (size_t)-1) switch (errno) {
 		case ENOENT:
 		case ENOTDIR:
 		case EACCES:
@@ -1211,7 +1217,7 @@ static struct dso *load_library(const char *name, struct dso *needed_by)
 		size_t per_th = temp_dso.tls.size + temp_dso.tls.align
 			+ sizeof(void *) * (tls_cnt+3);
 		n_th = libc.threads_minus_1 + 1;
-		if (n_th > SSIZE_MAX / per_th) alloc_size = SIZE_MAX;
+		if ((size_t)n_th > SSIZE_MAX / per_th) alloc_size = SIZE_MAX;
 		else alloc_size += n_th * per_th;
 	}
 	p = calloc(1, alloc_size);
@@ -1635,6 +1641,7 @@ weak_alias(dl_debug_state, _dl_debug_state);
 
 void __init_tls(size_t *auxv)
 {
+	(void)auxv;
 }
 
 static void update_tls_size()
@@ -1920,7 +1927,7 @@ void __dls3(size_t *sp, size_t *auxv)
 		/* Find the name that would have been used for the dynamic
 		 * linker had ldd not taken its place. */
 		if (ldd_mode) {
-			for (i=0; i<app.phnum; i++) {
+			for (i=0; i<(size_t)app.phnum; i++) {
 				if (app.phdr[i].p_type == PT_INTERP)
 					ldso.name = laddr(&app, app.phdr[i].p_vaddr);
 			}
@@ -2443,6 +2450,7 @@ static void error_impl(const char *fmt, ...)
 
 static void error_noop(const char *fmt, ...)
 {
+	(void)fmt;
 }
 
 static void set_errno_impl(int e)
@@ -2452,4 +2460,5 @@ static void set_errno_impl(int e)
 
 static void set_errno_noop(int e)
 {
+	(void)e;
 }

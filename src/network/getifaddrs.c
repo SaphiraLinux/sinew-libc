@@ -73,7 +73,7 @@ static void copy_addr(struct sockaddr **r, int af, union sockany *sa, void *addr
 	default:
 		return;
 	}
-	if (addrlen < len) return;
+	if (addrlen < (size_t)len) return;
 	sa->sa.sa_family = af;
 	memcpy(dst, addr, len);
 	*r = &sa->sa;
@@ -84,10 +84,10 @@ static void gen_netmask(struct sockaddr **r, int af, union sockany *sa, int pref
 	uint8_t addr[16] = {0};
 	int i;
 
-	if (prefixlen > 8*sizeof(addr)) prefixlen = 8*sizeof(addr);
+	if ((size_t)prefixlen > 8*sizeof(addr)) prefixlen = 8*sizeof(addr);
 	i = prefixlen / 8;
 	memset(addr, 0xff, i);
-	if (i < sizeof(addr)) addr[i++] = 0xff << (8 - (prefixlen % 8));
+	if ((size_t)i < sizeof(addr)) addr[i++] = 0xff << (8 - (prefixlen % 8));
 	copy_addr(r, af, sa, addr, sizeof(addr), 0);
 }
 
@@ -105,7 +105,7 @@ static void copy_lladdr(struct sockaddr **r, union sockany *sa, void *addr, size
 static int netlink_msg_to_ifaddr(void *pctx, struct nlmsghdr *h)
 {
 	struct ifaddrs_ctx *ctx = pctx;
-	struct ifaddrs_storage *ifs, *ifs0;
+	struct ifaddrs_storage *ifs, *ifs0 = 0;
 	struct ifinfomsg *ifi = NLMSG_DATA(h);
 	struct ifaddrmsg *ifa = NLMSG_DATA(h);
 	struct rtattr *rta;

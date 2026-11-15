@@ -12,7 +12,7 @@ weak_alias(dummy, _init);
 
 extern weak hidden void (*const __init_array_start)(void), (*const __init_array_end)(void);
 
-static void dummy1(void *p) {}
+static void dummy1(void *p) { (void)p; }
 weak_alias(dummy1, __init_ssp);
 
 #define AUX_CNT 38
@@ -70,8 +70,11 @@ typedef int lsm2_fn(int (*)(int,char **,char **), int, char **);
 static lsm2_fn libc_start_main_stage2;
 
 int __libc_start_main(int (*main)(int,char **,char **), int argc, char **argv,
-	void (*init_dummy)(), void(*fini_dummy)(), void(*ldso_dummy)())
+	void (*init_dummy)(), void(*fini_dummy)(), void (*ldso_dummy)())
 {
+	(void)init_dummy;
+	(void)fini_dummy;
+	(void)ldso_dummy;
 	char **envp = argv+argc+1;
 
 	/* External linkage, and explicit noinline attribute if available,

@@ -77,15 +77,15 @@ int dn_comp(const char *src, unsigned char *dst, int space, unsigned char **dnpt
 		if (m > bestlen) {
 			bestlen = m;
 			bestoff = offset;
-			if (m == l)
+			if ((size_t)m == l)
 				break;
 		}
 	}
 
 	/* encode unmatched part */
-	if (space < l-bestlen+2+(bestlen-1 < l-1)) return -1;
+	if ((size_t)space < l-(size_t)bestlen+2+((size_t)bestlen-1 < l-1)) return -1;
 	memcpy(dst+1, src, l-bestlen);
-	for (i=j=0; i<l-bestlen; i+=lens[j++]+1)
+	for (i=j=0; (size_t)i<l-bestlen; i+=lens[j++]+1)
 		dst[i] = lens[j];
 
 	/* add tail */

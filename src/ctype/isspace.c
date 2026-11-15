@@ -8,6 +8,7 @@ int isspace(int c)
 
 int __isspace_l(int c, locale_t l)
 {
+	(void)l;
 	return isspace(c);
 }
 

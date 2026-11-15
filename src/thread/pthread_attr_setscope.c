@@ -2,6 +2,7 @@
 
 int pthread_attr_setscope(pthread_attr_t *a, int scope)
 {
+	(void)a;
 	switch (scope) {
 	case PTHREAD_SCOPE_SYSTEM:
 		return 0;

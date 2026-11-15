@@ -7,6 +7,7 @@ int iswlower(wint_t wc)
 
 int __iswlower_l(wint_t c, locale_t l)
 {
+	(void)l;
 	return iswlower(c);
 }
 

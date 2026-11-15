@@ -20,6 +20,7 @@ int lockf(int fd, int op, off_t size)
 		return -1;
 	case F_ULOCK:
 		l.l_type = F_UNLCK;
+		/* fall through */
 	case F_TLOCK:
 		return fcntl(fd, F_SETLK, &l);
 	case F_LOCK:

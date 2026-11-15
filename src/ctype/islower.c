@@ -8,6 +8,7 @@ int islower(int c)
 
 int __islower_l(int c, locale_t l)
 {
+	(void)l;
 	return islower(c);
 }
 

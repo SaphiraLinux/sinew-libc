@@ -80,7 +80,7 @@ struct fdpic_dummy_loadmap {
 #if !DL_FDPIC
 #define IS_RELATIVE(x,s) ( \
 	(R_TYPE(x) == REL_RELATIVE) || \
-	(R_TYPE(x) == REL_SYM_OR_REL && !R_SYM(x)) )
+	(R_TYPE(x) == (uint64_t)REL_SYM_OR_REL && !R_SYM(x)) )
 #else
 #define IS_RELATIVE(x,s) ( ( \
 	(R_TYPE(x) == REL_FUNCDESC_VAL) || \

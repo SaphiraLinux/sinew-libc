@@ -5,7 +5,7 @@ static volatile int check_robust_result = -1;
 
 int pthread_mutexattr_setrobust(pthread_mutexattr_t *a, int robust)
 {
-	if (robust > 1U) return EINVAL;
+	if ((unsigned)robust > 1U) return EINVAL;
 	if (robust) {
 		int r = check_robust_result;
 		if (r < 0) {

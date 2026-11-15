@@ -6,6 +6,7 @@ void endservent(void)
 
 void setservent(int stayopen)
 {
+	(void)stayopen;
 }
 
 struct servent *getservent(void)

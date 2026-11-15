@@ -7,6 +7,7 @@ int isblank(int c)
 
 int __isblank_l(int c, locale_t l)
 {
+	(void)l;
 	return isblank(c);
 }
 

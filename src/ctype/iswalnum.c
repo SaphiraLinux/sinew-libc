@@ -8,6 +8,7 @@ int iswalnum(wint_t wc)
 
 int __iswalnum_l(wint_t c, locale_t l)
 {
+	(void)l;
 	return iswalnum(c);
 }
 

@@ -18,7 +18,7 @@ static int do_getaffinity(pid_t tid, size_t size, cpu_set_t *set)
 {
 	long ret = __syscall(SYS_sched_getaffinity, tid, size, set);
 	if (ret < 0) return ret;
-	if (ret < size) memset((char *)set+ret, 0, size-ret);
+	if ((size_t)ret < size) memset((char *)set+ret, 0, size-ret);
 	return 0;
 }
 

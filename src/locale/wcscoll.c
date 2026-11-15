@@ -5,6 +5,7 @@
 /* FIXME: stub */
 int __wcscoll_l(const wchar_t *l, const wchar_t *r, locale_t locale)
 {
+	(void)locale;
 	return wcscmp(l, r);
 }
 

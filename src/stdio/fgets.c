@@ -25,7 +25,7 @@ char *fgets(char *restrict s, int n, FILE *restrict f)
 		if (f->rpos != f->rend) {
 			z = memchr(f->rpos, '\n', f->rend - f->rpos);
 			k = z ? z - f->rpos + 1 : f->rend - f->rpos;
-			k = MIN(k, n);
+			k = MIN(k, (size_t)n);
 			memcpy(p, f->rpos, k);
 			f->rpos += k;
 			p += k;

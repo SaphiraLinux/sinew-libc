@@ -173,7 +173,7 @@ long sysconf(int name)
 		[_SC_SIGSTKSZ] = JT_SIGSTKSZ,
 	};
 
-	if (name >= sizeof(values)/sizeof(values[0]) || !values[name]) {
+	if ((unsigned)name >= sizeof(values)/sizeof(values[0]) || !values[name]) {
 		errno = EINVAL;
 		return -1;
 	} else if (values[name] >= -1) {
@@ -204,7 +204,7 @@ long sysconf(int name)
 		unsigned char set[128] = {1};
 		int i, cnt;
 		__syscall(SYS_sched_getaffinity, 0, sizeof set, set);
-		for (i=cnt=0; i<sizeof set; i++)
+		for (i=cnt=0; (size_t)i<sizeof set; i++)
 			for (; set[i]; set[i]&=set[i]-1, cnt++);
 		return cnt;
 	case JT_PHYS_PAGES & 255:

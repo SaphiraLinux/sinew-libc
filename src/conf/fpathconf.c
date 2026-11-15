@@ -4,6 +4,7 @@
 
 long fpathconf(int fd, int name)
 {
+	(void)fd;
 	static const short values[] = {
 		[_PC_LINK_MAX] = _POSIX_LINK_MAX,
 		[_PC_MAX_CANON] = _POSIX_MAX_CANON,
@@ -27,7 +28,7 @@ long fpathconf(int fd, int name)
 		[_PC_SYMLINK_MAX] = -1,
 		[_PC_2_SYMLINKS] = 1
 	};
-	if (name >= sizeof(values)/sizeof(values[0])) {
+	if ((unsigned)name >= sizeof(values)/sizeof(values[0])) {
 		errno = EINVAL;
 		return -1;
 	}

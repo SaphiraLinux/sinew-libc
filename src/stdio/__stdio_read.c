@@ -15,7 +15,7 @@ size_t __stdio_read(FILE *f, unsigned char *buf, size_t len)
 		f->flags |= cnt ? F_ERR : F_EOF;
 		return 0;
 	}
-	if (cnt <= iov[0].iov_len) return cnt;
+	if ((size_t)cnt <= iov[0].iov_len) return cnt;
 	cnt -= iov[0].iov_len;
 	f->rpos = f->buf;
 	f->rend = f->buf + cnt;

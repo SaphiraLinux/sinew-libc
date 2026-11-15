@@ -18,25 +18,31 @@ struct utmpx *getutxent(void)
 
 struct utmpx *getutxid(const struct utmpx *ut)
 {
+	(void)ut;
 	return NULL;
 }
 
 struct utmpx *getutxline(const struct utmpx *ut)
 {
+	(void)ut;
 	return NULL;
 }
 
 struct utmpx *pututxline(const struct utmpx *ut)
 {
+	(void)ut;
 	return NULL;
 }
 
 void updwtmpx(const char *f, const struct utmpx *u)
 {
+	(void)f;
+	(void)u;
 }
 
 static int __utmpxname(const char *f)
 {
+	(void)f;
 	errno = ENOTSUP;
 	return -1;
 }

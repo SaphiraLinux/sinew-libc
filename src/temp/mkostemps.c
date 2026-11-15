@@ -8,7 +8,7 @@
 int __mkostemps(char *template, int len, int flags)
 {
 	size_t l = strlen(template);
-	if (l<6 || len>l-6 || memcmp(template+l-len-6, "XXXXXX", 6)) {
+	if (l<6 || (size_t)len>l-6 || memcmp(template+l-len-6, "XXXXXX", 6)) {
 		errno = EINVAL;
 		return -1;
 	}

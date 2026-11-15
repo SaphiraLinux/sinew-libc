@@ -42,7 +42,7 @@ int utimensat(int fd, const char *path, const struct timespec times[2], int flag
 		int i;
 		tv = tmp;
 		for (i=0; i<2; i++) {
-			if (times[i].tv_nsec >= 1000000000ULL) {
+			if ((unsigned long long)times[i].tv_nsec >= 1000000000ULL) {
 				if (NS_SPECIAL(times[i].tv_nsec))
 					return __syscall_ret(-ENOSYS);
 				return __syscall_ret(-EINVAL);

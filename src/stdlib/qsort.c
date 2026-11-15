@@ -52,14 +52,20 @@ static void cycle(size_t width, unsigned char* ar[], int n)
 		return;
 	}
 
-	ar[n] = tmp;
+	/* Rotate the n element cursors using this frame's tmp as the
+	 * temporary slot. The slot is a local, never stored into the
+	 * caller's array, so no address of this frame escapes. The
+	 * operation sequence matches the original ar[n]-slot form
+	 * exactly: save ar[0], shift each element down, restore. */
 	while(width) {
 		l = sizeof(tmp) < width ? sizeof(tmp) : width;
-		memcpy(ar[n], ar[0], l);
-		for(i = 0; i < n; i++) {
+		memcpy(tmp, ar[0], l);
+		for(i = 0; i+1 < n; i++) {
 			memcpy(ar[i], ar[i + 1], l);
 			ar[i] += l;
 		}
+		memcpy(ar[i], tmp, l);
+		ar[i] += l;
 		width -= l;
 	}
 }
@@ -67,7 +73,7 @@ static void cycle(size_t width, unsigned char* ar[], int n)
 /* shl() and shr() need n > 0 */
 static inline void shl(size_t p[2], int n)
 {
-	if(n >= 8 * sizeof(size_t)) {
+	if((size_t)n >= 8 * sizeof(size_t)) {
 		n -= 8 * sizeof(size_t);
 		p[1] = p[0];
 		p[0] = 0;
@@ -80,7 +86,7 @@ static inline void shl(size_t p[2], int n)
 
 static inline void shr(size_t p[2], int n)
 {
-	if(n >= 8 * sizeof(size_t)) {
+	if((size_t)n >= 8 * sizeof(size_t)) {
 		n -= 8 * sizeof(size_t);
 		p[0] = p[1];
 		p[1] = 0;
@@ -186,7 +192,7 @@ void __qsort_r(void *base, size_t nel, size_t width, cmpfun cmp, void *arg)
 			shr(p, 2);
 			pshift += 2;
 		} else {
-			if(lp[pshift - 1] >= high - head) {
+			if(lp[pshift - 1] >= (size_t)(high - head)) {
 				trinkle(head, width, cmp, arg, p, pshift, 0, lp);
 			} else {
 				sift(head, width, cmp, arg, pshift, lp);

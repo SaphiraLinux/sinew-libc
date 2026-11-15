@@ -3,6 +3,8 @@
 
 static void *stub_dlsym(void *restrict p, const char *restrict s, void *restrict ra)
 {
+	(void)p;
+	(void)ra;
 	__dl_seterr("Symbol not found: %s", s);
 	return 0;
 }

@@ -1668,6 +1668,9 @@ static int do_wordexp(const char *s, wordexp_t *we, int flags)
 			i += al;
 			break;
 		} else if (s[i+1] != '(') break;
+		/* A single "$(" is command substitution, handled by the
+		 * shared backtick path below. */
+		/* fall through */
 	case '`':
 		if (sq) break;
 		return WRDE_CMDSUB;

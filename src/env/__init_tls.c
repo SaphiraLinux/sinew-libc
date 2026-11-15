@@ -123,12 +123,12 @@ static void static_init_tls(size_t *aux)
 	if (main_tls.align < MIN_TLS_ALIGN) main_tls.align = MIN_TLS_ALIGN;
 
 	libc.tls_align = main_tls.align;
-	libc.tls_size = 2*sizeof(void *) + sizeof(struct pthread)
+	libc.tls_size = (2*sizeof(void *) + sizeof(struct pthread)
 #ifdef TLS_ABOVE_TP
 		+ main_tls.offset
 #endif
-		+ main_tls.size + main_tls.align
-		+ MIN_TLS_ALIGN-1 & -MIN_TLS_ALIGN;
+		+ main_tls.size + main_tls.align + (MIN_TLS_ALIGN-1))
+		& -MIN_TLS_ALIGN;
 
 	if (libc.tls_size > sizeof builtin_tls) {
 #ifndef SYS_mmap2

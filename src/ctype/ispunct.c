@@ -7,6 +7,7 @@ int ispunct(int c)
 
 int __ispunct_l(int c, locale_t l)
 {
+	(void)l;
 	return ispunct(c);
 }
 

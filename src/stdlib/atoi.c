@@ -7,6 +7,7 @@ int atoi(const char *s)
 	while (isspace(*s)) s++;
 	switch (*s) {
 	case '-': neg=1;
+		/* fall through */
 	case '+': s++;
 	}
 	/* Compute n as a negative number to avoid overflow on INT_MIN */

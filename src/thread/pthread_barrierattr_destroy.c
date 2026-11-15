@@ -2,5 +2,6 @@
 
 int pthread_barrierattr_destroy(pthread_barrierattr_t *a)
 {
+	(void)a;
 	return 0;
 }

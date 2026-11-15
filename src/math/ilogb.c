@@ -3,7 +3,12 @@
 
 int ilogb(double x)
 {
+	/* Retained for compilers implementing STDC FENV_ACCESS; GCC
+	 * does not, so silence only its unknown-pragma complaint here. */
+	#pragma GCC diagnostic push
+	#pragma GCC diagnostic ignored "-Wunknown-pragmas"
 	#pragma STDC FENV_ACCESS ON
+	#pragma GCC diagnostic pop
 	union {double f; uint64_t i;} u = {x};
 	uint64_t i = u.i;
 	int e = i>>52 & 0x7ff;

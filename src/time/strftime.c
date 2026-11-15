@@ -52,20 +52,20 @@ const char *__strftime_fmt_1(char (*s)[100], size_t *l, int f, const struct tm *
 
 	switch (f) {
 	case 'a':
-		if (tm->tm_wday > 6U) goto string;
+		if ((unsigned)tm->tm_wday > 6U) goto string;
 		item = ABDAY_1 + tm->tm_wday;
 		goto nl_strcat;
 	case 'A':
-		if (tm->tm_wday > 6U) goto string;
+		if ((unsigned)tm->tm_wday > 6U) goto string;
 		item = DAY_1 + tm->tm_wday;
 		goto nl_strcat;
 	case 'h':
 	case 'b':
-		if (tm->tm_mon > 11U) goto string;
+		if ((unsigned)tm->tm_mon > 11U) goto string;
 		item = ABMON_1 + tm->tm_mon;
 		goto nl_strcat;
 	case 'B':
-		if (tm->tm_mon > 11U) goto string;
+		if ((unsigned)tm->tm_mon > 11U) goto string;
 		item = MON_1 + tm->tm_mon;
 		goto nl_strcat;
 	case 'c':
@@ -76,6 +76,7 @@ const char *__strftime_fmt_1(char (*s)[100], size_t *l, int f, const struct tm *
 		goto number;
 	case 'e':
 		def_pad = '_';
+		/* fall through */
 	case 'd':
 		val = tm->tm_mday;
 		goto number;
@@ -254,10 +255,10 @@ size_t __strftime_l(char *restrict s, size_t n, const char *restrict f, const st
 			 * count remaining digits to determine behavior
 			 * for the + flag. */
 			if (*t=='+' || *t=='-') t++, k--;
-			for (; *t=='0' && t[1]-'0'<10U; t++, k--);
+			for (; *t=='0' && (unsigned)(t[1]-'0')<10U; t++, k--);
 			if (width < k) width = k;
 			size_t d;
-			for (d=0; t[d]-'0'<10U; d++);
+			for (d=0; (unsigned)(t[d]-'0')<10U; d++);
 			if (tm->tm_year < -1900) {
 				s[l++] = '-';
 				width--;

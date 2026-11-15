@@ -52,7 +52,7 @@ static int netlink_msg_to_nameindex(void *pctx, struct nlmsghdr *h)
 		i = ctx->hash[bucket];
 		while (i) {
 			map = &ctx->list[i-1];
-			if (map->index == index &&
+			if (map->index == (unsigned)index &&
 			    map->namelen == namelen &&
 			    memcmp(map->name, RTA_DATA(rta), namelen) == 0)
 				return 0;

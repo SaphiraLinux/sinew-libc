@@ -74,7 +74,7 @@ static off_t cookieseek(FILE *f, off_t off, int whence)
 {
 	struct fcookie *fc = f->cookie;
 	int res;
-	if (whence > 2U) {
+	if ((unsigned)whence > 2U) {
 		errno = EINVAL;
 		return -1;
 	}

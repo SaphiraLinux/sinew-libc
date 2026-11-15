@@ -32,7 +32,7 @@ static wint_t __fgetwc_unlocked_internal(FILE *f)
 			return WEOF;
 		}
 		l = mbrtowc(&wc, (void *)&b, 1, &st);
-		if (l == -1) {
+		if (l == (size_t)-1) {
 			if (!first) {
 				f->flags |= F_ERR;
 				ungetc(b, f);
@@ -40,7 +40,7 @@ static wint_t __fgetwc_unlocked_internal(FILE *f)
 			return WEOF;
 		}
 		first = 0;
-	} while (l == -2);
+	} while (l == (size_t)-2);
 
 	return wc;
 }

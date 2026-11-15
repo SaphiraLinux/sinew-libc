@@ -98,7 +98,7 @@ static void reverse_services(char *buf, int port, int dgram)
 		*p++ = 0;
 		svport = strtoul(p, &z, 10);
 
-		if (svport != port || z==p) continue;
+		if (svport != (unsigned long)port || z==p) continue;
 		if (dgram && strncmp(z, "/udp", 4)) continue;
 		if (!dgram && strncmp(z, "/tcp", 4)) continue;
 		if (p-line > 32) continue;
@@ -111,6 +111,7 @@ static void reverse_services(char *buf, int port, int dgram)
 
 static int dns_parse_callback(void *c, int rr, const void *data, int len, const void *packet, int plen)
 {
+	(void)len;
 	if (rr != RR_PTR) return 0;
 	if (__dn_expand(packet, (const unsigned char *)packet + plen,
 	    data, c, 256) <= 0)
@@ -163,7 +164,7 @@ int getnameinfo(const struct sockaddr *restrict sa, socklen_t sl,
 			int rlen = __res_send(query, qlen, reply, sizeof reply);
 			buf[0] = 0;
 			if (rlen > 0) {
-				if (rlen > sizeof reply) rlen = sizeof reply;
+				if ((size_t)rlen > sizeof reply) rlen = sizeof reply;
 				__dns_parse(reply, rlen, dns_parse_callback, buf);
 			}
 		}

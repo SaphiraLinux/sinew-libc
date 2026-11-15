@@ -8,6 +8,7 @@ int isalpha(int c)
 
 int __isalpha_l(int c, locale_t l)
 {
+	(void)l;
 	return isalpha(c);
 }
 

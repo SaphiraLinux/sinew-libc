@@ -170,7 +170,11 @@ static double sin_pi(double x)
 double __lgamma_r(double x, int *signgamp)
 {
 	union {double f; uint64_t i;} u = {x};
-	double_t t,y,z,nadj,p,p1,p2,p3,q,r,w;
+	/* r and nadj are set on every path reaching their uses below
+	 * (exhaustive branch chains, nadj dominated by the same sign
+	 * test); the initializers only silence a flow-analysis
+	 * false positive and are never observed. */
+	double_t t,y,z,nadj=0,p,p1,p2,p3,q,r=0,w;
 	uint32_t ix;
 	int sign,i;
 

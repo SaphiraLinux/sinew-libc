@@ -10,6 +10,7 @@ int iswcntrl(wint_t wc)
 
 int __iswcntrl_l(wint_t c, locale_t l)
 {
+	(void)l;
 	return iswcntrl(c);
 }
 

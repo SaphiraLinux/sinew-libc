@@ -221,7 +221,11 @@ static void *io_thread_func(void *ctx)
 	off_t off = cb->aio_offset;
 
 	struct aio_queue *q = args->q;
-	ssize_t ret;
+	/* All submitters filter opcodes before queueing (lio_listio
+	 * skips non-READ/WRITE, aio_fsync validates SYNC/DSYNC), so
+	 * the switch below always assigns ret. The initializer only
+	 * quiets analysis and is never observed. */
+	ssize_t ret = 0;
 
 	pthread_mutex_lock(&q->lock);
 	sem_post(&args->sem);
@@ -420,7 +424,7 @@ void __aio_atfork(int who)
 		map = 0;
 		return;
 	}
-	if (map) for (int a=0; a<(-1U/2+1)>>24; a++)
+	if (map) for (int a=0; (unsigned)a<(-1U/2+1)>>24; a++)
 		if (map[a]) for (int b=0; b<256; b++)
 			if (map[a][b]) for (int c=0; c<256; c++)
 				if (map[a][b][c]) for (int d=0; d<256; d++)

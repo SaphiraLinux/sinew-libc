@@ -26,7 +26,7 @@ static off_t wms_seek(FILE *f, off_t off, int whence)
 {
 	ssize_t base;
 	struct cookie *c = f->cookie;
-	if (whence>2U) {
+	if ((unsigned)whence>2U) {
 fail:
 		errno = EINVAL;
 		return -1;
@@ -47,7 +47,7 @@ static size_t wms_write(FILE *f, const unsigned char *buf, size_t len)
 		if (wms_write(f, f->wbase, len2) < len2) return 0;
 	}
 	if (len + c->pos >= c->space) {
-		len2 = 2*c->space+1 | c->pos+len+1;
+		len2 = (2*c->space+1) | (c->pos+len+1);
 		if (len2 > SSIZE_MAX/4) return 0;
 		newbuf = realloc(c->buf, len2*4);
 		if (!newbuf) return 0;
@@ -57,7 +57,7 @@ static size_t wms_write(FILE *f, const unsigned char *buf, size_t len)
 	}
 	
 	len2 = mbsnrtowcs(c->buf+c->pos, (void *)&buf, len, c->space-c->pos, &c->mbs);
-	if (len2 == -1) return 0;
+	if (len2 == (size_t)-1) return 0;
 	c->pos += len2;
 	if (c->pos >= c->len) c->len = c->pos;
 	*c->sizep = c->pos;
@@ -66,6 +66,7 @@ static size_t wms_write(FILE *f, const unsigned char *buf, size_t len)
 
 static int wms_close(FILE *f)
 {
+	(void)f;
 	return 0;
 }
 

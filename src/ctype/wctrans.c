@@ -17,11 +17,13 @@ wint_t towctrans(wint_t wc, wctrans_t trans)
 
 wctrans_t __wctrans_l(const char *s, locale_t l)
 {
+	(void)l;
 	return wctrans(s);
 }
 
 wint_t __towctrans_l(wint_t c, wctrans_t t, locale_t l)
 {
+	(void)l;
 	return towctrans(c, t);
 }
 

@@ -1,6 +1,6 @@
 #include "internal.h"
 
-#define C(x) ( x<2 ? -1 : ( R(0x80,0xc0) | x ) )
+#define C(x) ( x<2 ? (uint32_t)-1 : ( R(0x80,0xc0) | x ) )
 #define D(x) C((x+16))
 #define E(x) ( ( x==0 ? R(0xa0,0xc0) : \
                  x==0xd ? R(0x80,0xa0) : \

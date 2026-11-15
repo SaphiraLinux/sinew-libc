@@ -7,6 +7,7 @@ int isxdigit(int c)
 
 int __isxdigit_l(int c, locale_t l)
 {
+	(void)l;
 	return isxdigit(c);
 }
 

@@ -21,9 +21,9 @@ wint_t __fputwc_unlocked(wchar_t c, FILE *f)
 		else f->wpos += l;
 	} else {
 		l = wctomb(mbc, c);
-		if (l < 0 || __fwritex((void *)mbc, l, f) < l) c = WEOF;
+		if (l < 0 || __fwritex((void *)mbc, l, f) < (size_t)l) c = WEOF;
 	}
-	if (c==WEOF) f->flags |= F_ERR;
+	if ((unsigned)c==WEOF) f->flags |= F_ERR;
 	*ploc = loc;
 	return c;
 }

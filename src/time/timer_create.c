@@ -24,6 +24,9 @@ weak_alias(dummy_0, __pthread_tsd_run_dtors);
 
 static void timer_handler(int sig, siginfo_t *si, void *ctx)
 {
+	(void)sig;
+	(void)si;
+	(void)ctx;
 }
 
 static void cleanup_fromsig(void *p)

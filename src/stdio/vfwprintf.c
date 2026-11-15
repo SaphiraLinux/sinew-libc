@@ -12,12 +12,12 @@
 /* Convenient bit representation for modifier flags, which all fall
  * within 31 codepoints of the space character. */
 
-#define ALT_FORM   (1U<<'#'-' ')
-#define ZERO_PAD   (1U<<'0'-' ')
-#define LEFT_ADJ   (1U<<'-'-' ')
-#define PAD_POS    (1U<<' '-' ')
-#define MARK_POS   (1U<<'+'-' ')
-#define GROUPED    (1U<<'\''-' ')
+#define ALT_FORM   (1U<<('#'-' '))
+#define ZERO_PAD   (1U<<('0'-' '))
+#define LEFT_ADJ   (1U<<('-'-' '))
+#define PAD_POS    (1U<<(' '-' '))
+#define MARK_POS   (1U<<('+'-' '))
+#define GROUPED    (1U<<('\''-' '))
 
 #define FLAGMASK (ALT_FORM|ZERO_PAD|LEFT_ADJ|PAD_POS|MARK_POS|GROUPED)
 
@@ -137,7 +137,7 @@ static void pad(FILE *f, int n, int fl)
 static int getint(wchar_t **s) {
 	int i;
 	for (i=0; iswdigit(**s); (*s)++) {
-		if (i > INT_MAX/10U || **s-'0' > INT_MAX-10*i) i = -1;
+		if ((unsigned)i > INT_MAX/10U || **s-'0' > INT_MAX-10*i) i = -1;
 		else i = 10*i + (**s-'0');
 	}
 	return i;
@@ -192,8 +192,8 @@ static int wprintf_core(FILE *f, const wchar_t *fmt, va_list *ap, union arg *nl_
 		}
 
 		/* Read modifier flags */
-		for (fl=0; (unsigned)*s-' '<32 && (FLAGMASK&(1U<<*s-' ')); s++)
-			fl |= 1U<<*s-' ';
+		for (fl=0; (unsigned)*s-' '<32 && (FLAGMASK&(1U<<(*s-' '))); s++)
+			fl |= 1U<<(*s-' ');
 
 		/* Read field width */
 		if (*s=='*') {
@@ -289,6 +289,7 @@ static int wprintf_core(FILE *f, const wchar_t *fmt, va_list *ap, union arg *nl_
 			continue;
 		case 'm':
 			arg.p = strerror(errno);
+			/* fall through */
 		case 's':
 			if (!arg.p) arg.p = "(null)";
 			bs = arg.p;

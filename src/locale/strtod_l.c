@@ -4,16 +4,19 @@
 
 float strtof_l(const char *restrict s, char **restrict p, locale_t l)
 {
+	(void)l;
 	return strtof(s, p);
 }
 
 double strtod_l(const char *restrict s, char **restrict p, locale_t l)
 {
+	(void)l;
 	return strtod(s, p);
 }
 
 long double strtold_l(const char *restrict s, char **restrict p, locale_t l)
 {
+	(void)l;
 	return strtold(s, p);
 }
 

@@ -44,7 +44,7 @@ static const char *evalprim(struct st *st, const char *s, int d)
 	s = skipspace(s);
 	if (isdigit(*s)) {
 		st->r = strtoul(s, &e, 10);
-		if (e == s || st->r == -1) return "";
+		if (e == s || st->r == -1UL) return "";
 		return skipspace(e);
 	}
 	if (*s == 'n') {
@@ -87,8 +87,8 @@ static int binop(struct st *st, int op, unsigned long left)
 
 static const char *parseop(struct st *st, const char *s)
 {
-	static const char opch[11] = "|&=!><+-*%/";
-	static const char opch2[6] = "|&====";
+	static const char opch[11] __attribute__((__nonstring__)) = "|&=!><+-*%/";
+	static const char opch2[6] __attribute__((__nonstring__)) = "|&====";
 	int i;
 	for (i=0; i<11; i++)
 		if (*s == opch[i]) {
@@ -154,5 +154,5 @@ unsigned long __pleval(const char *s, unsigned long n)
 	struct st st;
 	st.n = n;
 	s = evalexpr(&st, s, 100);
-	return *s == ';' ? st.r : -1;
+	return *s == ';' ? st.r : (unsigned long)-1;
 }

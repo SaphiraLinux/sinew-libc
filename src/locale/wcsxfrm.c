@@ -5,6 +5,7 @@
 /* collate only by code points */
 size_t __wcsxfrm_l(wchar_t *restrict dest, const wchar_t *restrict src, size_t n, locale_t loc)
 {
+	(void)loc;
 	size_t l = wcslen(src);
 	if (l < n) {
 		wmemcpy(dest, src, l+1);

@@ -41,7 +41,7 @@ volatile int *const __timezone_lockptr = lock;
 static int getint(const char **p)
 {
 	unsigned x;
-	for (x=0; **p-'0'<10U; (*p)++) x = **p-'0' + 10*x;
+	for (x=0; (unsigned)(**p-'0')<10U; (*p)++) x = **p-'0' + 10*x;
 	return x;
 }
 
@@ -97,7 +97,7 @@ static void getname(char *d, const char **p)
 			if (i<TZNAME_MAX) d[i] = (*p)[i];
 		if ((*p)[i]) ++*p;
 	} else {
-		for (i=0; ((*p)[i]|32)-'a'<26U; i++)
+		for (i=0; ((unsigned)((*p)[i]|32)-'a')<26U; i++)
 			if (i<TZNAME_MAX) d[i] = (*p)[i];
 	}
 	*p += i;
@@ -243,7 +243,7 @@ static void do_tzset()
 	__tzname[1] = dst_name;
 	if (dst_name[0]) {
 		__daylight = 1;
-		if (*s == '+' || *s=='-' || *s-'0'<10U)
+		if (*s == '+' || *s=='-' || (unsigned)(*s-'0')<10U)
 			dst_off = getoff(&s);
 		else
 			dst_off = __timezone - 3600;
@@ -369,7 +369,7 @@ void __secs_to_zone(long long t, int local, int *isdst, long *offset, long *oppo
 
 	if (zi) {
 		size_t alt, i = scan_trans(t, local, &alt);
-		if (i != -1) {
+		if (i != (size_t)-1) {
 			*isdst = types[6*i+4];
 			*offset = (int32_t)zi_read32(types+6*i);
 			*zonename = (const char *)abbrevs + types[6*i+5];
@@ -431,7 +431,7 @@ const char *__tm_to_tzname(const struct tm *tm)
 	LOCK(lock);
 	do_tzset();
 	if (p != __utc && p != __tzname[0] && p != __tzname[1] &&
-	    (!zi || (uintptr_t)p-(uintptr_t)abbrevs >= abbrevs_end - abbrevs))
+	    (!zi || (uintptr_t)p-(uintptr_t)abbrevs >= (uintptr_t)(abbrevs_end - abbrevs)))
 		p = "";
 	UNLOCK(lock);
 	return p;

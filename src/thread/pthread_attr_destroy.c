@@ -2,5 +2,6 @@
 
 int pthread_attr_destroy(pthread_attr_t *a)
 {
+	(void)a;
 	return 0;
 }

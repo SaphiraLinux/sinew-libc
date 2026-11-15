@@ -45,6 +45,7 @@ void __tl_unlock(void)
 
 void __tl_sync(pthread_t td)
 {
+	(void)td;
 	a_barrier();
 	int val = __thread_list_lock;
 	if (!val) return;
@@ -212,7 +213,14 @@ static int start(void *p)
 static int start_c11(void *p)
 {
 	struct start_args *args = p;
+	/* Same function-pointer conversion the legacy __clone call site
+	 * always performed: start_func returns void * but the child
+	 * entry consumes the low 32 bits as its exit status, exactly
+	 * as the old clone trampoline did. Narrowly scoped. */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wcast-function-type"
 	int (*start)(void*) = (int(*)(void*)) args->start_func;
+#pragma GCC diagnostic pop
 	__pthread_exit((void *)(uintptr_t)start(args->start_arg));
 	return 0;
 }

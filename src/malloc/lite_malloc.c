@@ -53,24 +53,24 @@ static void *__simple_malloc(size_t n)
 
 	LOCK(lock);
 
-	cur += -cur & align-1;
+	cur += ((-cur) & (align-1));
 
 	if (n > end-cur) {
-		size_t req = n - (end-cur) + PAGE_SIZE-1 & -PAGE_SIZE;
+		size_t req = (n - (end-cur) + PAGE_SIZE-1) & -PAGE_SIZE;
 
 		if (!cur) {
 			brk = __syscall(SYS_brk, 0);
-			brk += -brk & PAGE_SIZE-1;
+			brk += ((-brk) & (PAGE_SIZE-1));
 			cur = end = brk;
 		}
 
 		if (brk == end && req < SIZE_MAX-brk
 		    && !traverses_stack_p(brk, brk+req)
-		    && __syscall(SYS_brk, brk+req)==brk+req) {
+		    && (uintptr_t)__syscall(SYS_brk, brk+req)==brk+req) {
 			brk = end += req;
 		} else {
 			int new_area = 0;
-			req = n + PAGE_SIZE-1 & -PAGE_SIZE;
+			req = (n + PAGE_SIZE-1) & -PAGE_SIZE;
 			/* Only make a new area rather than individual mmap
 			 * if wasted space would be over 1/8 of the map. */
 			if (req-n > req/8) {

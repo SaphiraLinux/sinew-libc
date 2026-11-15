@@ -42,7 +42,7 @@ int gethostbyname2_r(const char *name, int af,
 	h->h_length = af==AF_INET6 ? 16 : 4;
 
 	/* Align buffer */
-	align = -(uintptr_t)buf & sizeof(char *)-1;
+	align = (-(uintptr_t)buf) & (sizeof(char *)-1);
 
 	need = 4*sizeof(char *);
 	need += (cnt + 1) * (sizeof(char *) + h->h_length);

@@ -55,7 +55,7 @@ struct meta *alloc_meta(void)
 	if ((m = dequeue_head(&ctx.free_meta_head))) return m;
 	if (!ctx.avail_meta_count) {
 		int need_unprotect = 1;
-		if (!ctx.avail_meta_area_count && ctx.brk!=-1) {
+		if (!ctx.avail_meta_area_count && ctx.brk!=(uintptr_t)-1) {
 			uintptr_t new = ctx.brk + pagesize;
 			int need_guard = 0;
 			if (!ctx.brk) {
@@ -192,7 +192,7 @@ static struct meta *alloc_group(int sc, size_t req)
 		cnt = med_cnt_tab[sc&3];
 
 		// reduce cnt to avoid excessive eagar allocation.
-		while (!(cnt&1) && 4*cnt > usage)
+		while (!(cnt&1) && (size_t)(4*cnt) > usage)
 			cnt >>= 1;
 
 		// data structures don't support groups whose slot offsets
@@ -224,7 +224,7 @@ static struct meta *alloc_group(int sc, size_t req)
 		// increases usage by more than 25%. these reduced counts
 		// roughly fill an integral number of pages, just not a
 		// power of two, limiting amount of unusable space.
-		if (4*cnt > usage && !nosmall) {
+		if ((size_t)(4*cnt) > usage && !nosmall) {
 			if (0);
 			else if ((sc&3)==1 && size*cnt>8*pagesize) cnt = 2;
 			else if ((sc&3)==2 && size*cnt>4*pagesize) cnt = 3;
@@ -240,7 +240,7 @@ static struct meta *alloc_group(int sc, size_t req)
 		if (!nosmall && cnt<=7) {
 			req += IB + UNIT;
 			req += -req & (pagesize-1);
-			if (req<size+UNIT || (req>=4*pagesize && 2*cnt>usage)) {
+			if (req<size+UNIT || (req>=4*pagesize && (size_t)(2*cnt)>usage)) {
 				cnt = 1;
 				needed = req;
 			}
@@ -359,7 +359,7 @@ void *malloc(size_t n)
 		if (!first) break;
 		if (RDLOCK_IS_EXCLUSIVE || !MT)
 			g->avail_mask = mask-first;
-		else if (a_cas(&g->avail_mask, mask, mask-first)!=mask)
+		else if ((uint32_t)a_cas(&g->avail_mask, mask, mask-first)!=mask)
 			continue;
 		idx = a_ctz_32(first);
 		goto success;

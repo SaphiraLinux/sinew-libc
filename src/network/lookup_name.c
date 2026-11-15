@@ -18,7 +18,7 @@
 static int is_valid_hostname(const char *host)
 {
 	const unsigned char *s;
-	if (strnlen(host, 255)-1 >= 254 || mbstowcs(0, host, 0) == -1) return 0;
+	if (strnlen(host, 255)-1 >= (size_t)254 || mbstowcs(0, host, 0) == (size_t)-1) return 0;
 	for (s=(void *)host; *s>=0x80 || *s=='.' || *s=='-' || isalnum(*s); s++);
 	return !*s;
 }
@@ -114,7 +114,10 @@ struct dpc_ctx {
 static int dns_parse_callback(void *c, int rr, const void *data, int len, const void *packet, int plen)
 {
 	char tmp[256];
-	int family;
+	/* Always assigned below: rr was already filtered to
+	 * ctx->rrtype (A or AAAA only), so the switch covers it.
+	 * The initializer only quiets analysis, never observed. */
+	int family = 0;
 	struct dpc_ctx *ctx = c;
 	if (rr == RR_CNAME) {
 		if (__dn_expand(packet, (const unsigned char *)packet + plen,
@@ -179,7 +182,7 @@ static int name_from_dns(struct address buf[static MAXADDRS], char canon[static 
 
 	for (i=nq-1; i>=0; i--) {
 		ctx.rrtype = qtypes[i];
-		if (alens[i] > sizeof(abuf[i])) alens[i] = sizeof abuf[i];
+		if ((size_t)alens[i] > sizeof(abuf[i])) alens[i] = sizeof abuf[i];
 		__dns_parse(abuf[i], alens[i], dns_parse_callback, &ctx);
 	}
 
@@ -219,7 +222,7 @@ static int name_from_dns_search(struct address buf[static MAXADDRS], char canon[
 		for (; isspace(*p); p++);
 		for (z=p; *z && !isspace(*z); z++);
 		if (z==p) break;
-		if (z-p < 256 - l - 1) {
+		if ((size_t)(z-p) < 256 - l - 1) {
 			memcpy(canon+l+1, p, z-p);
 			canon[z-p+1+l] = 0;
 			int cnt = name_from_dns(buf, canon, canon, family, &conf);
@@ -236,7 +239,7 @@ static const struct policy {
 	unsigned char len, mask;
 	unsigned char prec, label;
 } defpolicy[] = {
-	{ "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\1", 15, 0xff, 50, 0 },
+	{ {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1}, 15, 0xff, 50, 0 },
 	{ "\0\0\0\0\0\0\0\0\0\0\xff\xff", 11, 0xff, 35, 4 },
 	{ "\x20\2", 1, 0xff, 30, 2 },
 	{ "\x20\1", 3, 0xff, 5, 5 },

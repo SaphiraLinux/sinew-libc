@@ -12,10 +12,14 @@ int __res_mkquery(int op, const char *dname, int class, int type,
 	size_t l = strnlen(dname, 255);
 	int n;
 
+	(void)data;
+	(void)datalen;
+	(void)newrr;
+
 	if (l && dname[l-1]=='.') l--;
 	if (l && dname[l-1]=='.') return -1;
 	n = 17+l+!!l;
-	if (l>253 || buflen<n || op>15u || class>255u || type>255u)
+	if (l>253 || buflen<n || (unsigned)op>15u || (unsigned)class>255u || (unsigned)type>255u)
 		return -1;
 
 	/* Construct query template - ID will be filled later */
@@ -34,7 +38,7 @@ int __res_mkquery(int op, const char *dname, int class, int type,
 
 	/* Make a reasonably unpredictable id */
 	clock_gettime(CLOCK_REALTIME, &ts);
-	id = ts.tv_nsec + ts.tv_nsec/65536UL & 0xffff;
+	id = (ts.tv_nsec + ts.tv_nsec/65536UL) & 0xffff;
 	q[0] = id/256;
 	q[1] = id;
 

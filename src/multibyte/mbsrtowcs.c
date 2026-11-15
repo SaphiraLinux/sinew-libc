@@ -41,7 +41,7 @@ size_t mbsrtowcs(wchar_t *restrict ws, const char **restrict src, size_t wn, mbs
 #ifdef __GNUC__
 		typedef uint32_t __attribute__((__may_alias__)) w32;
 		if (*s-1u < 0x7f && (uintptr_t)s%4 == 0) {
-			while (!(( *(w32*)s | *(w32*)s-0x01010101) & 0x80808080)) {
+			while (!(( *(w32*)s | (*(w32*)s-0x01010101)) & 0x80808080)) {
 				s += 4;
 				wn -= 4;
 			}
@@ -75,7 +75,7 @@ resume0:
 #ifdef __GNUC__
 		typedef uint32_t __attribute__((__may_alias__)) w32;
 		if (*s-1u < 0x7f && (uintptr_t)s%4 == 0) {
-			while (wn>=5 && !(( *(w32*)s | *(w32*)s-0x01010101) & 0x80808080)) {
+			while (wn>=5 && !(( *(w32*)s | (*(w32*)s-0x01010101)) & 0x80808080)) {
 				*ws++ = *s++;
 				*ws++ = *s++;
 				*ws++ = *s++;
@@ -93,13 +93,13 @@ resume0:
 		c = bittab[*s++-SA];
 resume:
 		if (OOB(c,*s)) { s--; break; }
-		c = (c<<6) | *s++-0x80;
+		c = (c<<6) | (*s++-0x80);
 		if (c&(1U<<31)) {
 			if (*s-0x80u >= 0x40) { s-=2; break; }
-			c = (c<<6) | *s++-0x80;
+			c = (c<<6) | (*s++-0x80);
 			if (c&(1U<<31)) {
 				if (*s-0x80u >= 0x40) { s-=3; break; }
-				c = (c<<6) | *s++-0x80;
+				c = (c<<6) | (*s++-0x80);
 			}
 		}
 		*ws++ = c;

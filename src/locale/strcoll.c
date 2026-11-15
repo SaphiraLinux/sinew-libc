@@ -4,6 +4,7 @@
 
 int __strcoll_l(const char *l, const char *r, locale_t loc)
 {
+	(void)loc;
 	return strcmp(l, r);
 }
 

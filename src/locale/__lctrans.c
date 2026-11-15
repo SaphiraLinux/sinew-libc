@@ -3,6 +3,7 @@
 
 static const char *dummy(const char *msg, const struct __locale_map *lm)
 {
+	(void)lm;
 	return msg;
 }
 

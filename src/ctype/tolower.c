@@ -8,6 +8,7 @@ int tolower(int c)
 
 int __tolower_l(int c, locale_t l)
 {
+	(void)l;
 	return tolower(c);
 }
 

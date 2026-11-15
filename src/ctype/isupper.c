@@ -8,6 +8,7 @@ int isupper(int c)
 
 int __isupper_l(int c, locale_t l)
 {
+	(void)l;
 	return isupper(c);
 }
 

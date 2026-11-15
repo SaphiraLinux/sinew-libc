@@ -16,7 +16,7 @@ static long xatol(char **s)
 {
 	long x;
 	if (**s == ':' || **s == '\n') return -1;
-	for (x=0; **s-'0'<10U; ++*s) x=10*x+(**s-'0');
+	for (x=0; (unsigned)(**s-'0')<10U; ++*s) x=10*x+(**s-'0');
 	return x;
 }
 
@@ -80,7 +80,7 @@ int getspnam_r(const char *name, struct spwd *sp, char *buf, size_t size, struct
 		return errno = ERANGE;
 
 	/* Protect against truncation */
-	if (snprintf(path, sizeof path, "/etc/tcb/%s/shadow", name) >= sizeof path)
+	if ((unsigned)snprintf(path, sizeof path, "/etc/tcb/%s/shadow", name) >= sizeof path)
 		return errno = EINVAL;
 
 	fd = open(path, O_RDONLY|O_NOFOLLOW|O_NONBLOCK|O_CLOEXEC);

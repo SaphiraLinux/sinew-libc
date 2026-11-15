@@ -2,6 +2,7 @@
 
 void sethostent(int x)
 {
+	(void)x;
 }
 
 struct hostent *gethostent()

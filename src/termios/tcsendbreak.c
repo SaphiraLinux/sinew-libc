@@ -3,6 +3,7 @@
 
 int tcsendbreak(int fd, int dur)
 {
+	(void)dur;
 	/* nonzero duration is implementation-defined, so ignore it */
 	return ioctl(fd, TCSBRK, 0);
 }

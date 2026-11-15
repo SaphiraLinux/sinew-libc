@@ -5,9 +5,10 @@ size_t wcsrtombs(char *restrict s, const wchar_t **restrict ws, size_t n, mbstat
 	const wchar_t *ws2;
 	char buf[4];
 	size_t N = n, l;
+	(void)st;
 	if (!s) {
 		for (n=0, ws2=*ws; *ws2; ws2++) {
-			if (*ws2 >= 0x80u) {
+			if ((unsigned)*ws2 >= 0x80u) {
 				l = wcrtomb(buf, *ws2, 0);
 				if (!(l+1)) return -1;
 				n += l;

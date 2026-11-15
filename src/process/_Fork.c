@@ -8,7 +8,7 @@
 #include "fork_impl.h"
 #include "clone3_impl.h"
 
-static void dummy(int x) { }
+static void dummy(int x) { (void)x; }
 weak_alias(dummy, __aio_atfork);
 
 void __post_Fork(int ret)

@@ -22,7 +22,7 @@ static off_t mseek(FILE *f, off_t off, int whence)
 {
 	ssize_t base;
 	struct cookie *c = f->cookie;
-	if (whence>2U) {
+	if ((unsigned)whence>2U) {
 fail:
 		errno = EINVAL;
 		return -1;
@@ -80,6 +80,7 @@ static size_t mwrite(FILE *f, const unsigned char *buf, size_t len)
 
 static int mclose(FILE *m)
 {
+	(void)m;
 	return 0;
 }
 

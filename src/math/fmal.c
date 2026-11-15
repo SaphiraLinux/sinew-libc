@@ -164,7 +164,12 @@ static inline struct dd dd_mul(long double a, long double b)
  */
 long double fmal(long double x, long double y, long double z)
 {
+	/* Retained for compilers implementing STDC FENV_ACCESS; GCC
+	 * does not, so silence only its unknown-pragma complaint here. */
+	#pragma GCC diagnostic push
+	#pragma GCC diagnostic ignored "-Wunknown-pragmas"
 	#pragma STDC FENV_ACCESS ON
+	#pragma GCC diagnostic pop
 	long double xs, ys, zs, adj;
 	struct dd xy, r;
 	int oround;
@@ -209,21 +214,21 @@ long double fmal(long double x, long double y, long double z)
 			return (z);
 #ifdef FE_TOWARDZERO
 		case FE_TOWARDZERO:
-			if (x > 0.0 ^ y < 0.0 ^ z < 0.0)
+			if ((x > 0.0) ^ (y < 0.0) ^ (z < 0.0))
 				return (z);
 			else
 				return (nextafterl(z, 0));
 #endif
 #ifdef FE_DOWNWARD
 		case FE_DOWNWARD:
-			if (x > 0.0 ^ y < 0.0)
+			if ((x > 0.0) ^ (y < 0.0))
 				return (z);
 			else
 				return (nextafterl(z, -INFINITY));
 #endif
 #ifdef FE_UPWARD
 		case FE_UPWARD:
-			if (x > 0.0 ^ y < 0.0)
+			if ((x > 0.0) ^ (y < 0.0))
 				return (nextafterl(z, INFINITY));
 			else
 				return (z);

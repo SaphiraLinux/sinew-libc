@@ -81,11 +81,15 @@ int __res_msend_rc(int nqueries, const unsigned char *const *queries,
 	const struct resolvconf *conf)
 {
 	int fd;
-	int timeout, attempts, retry_interval, servfail_retry;
+	int timeout, attempts, retry_interval;
+	/* Assigned before any response is processed (the first retry
+	 * check is always true via the t1 init); the initializer only
+	 * quiets analysis and is never observed. */
+	int servfail_retry = 0;
 	union {
 		struct sockaddr_in6 sin6;
 		struct sockaddr_in sin;
-	} sa = {0}, ns[MAXNS] = {{0}};
+	} sa = {0}, ns[MAXNS] = {0};
 	socklen_t sl = sizeof sa.sin;
 	int nns = 0;
 	int family = AF_INET;
@@ -106,7 +110,7 @@ int __res_msend_rc(int nqueries, const unsigned char *const *queries,
 
 	pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, &cs);
 
-	for (nns=0; nns<conf->nns; nns++) {
+	for (nns=0; (unsigned)nns<conf->nns; nns++) {
 		const struct address *iplit = &conf->ns[nns];
 		if (iplit->family == AF_INET) {
 			memcpy(&ns[nns].sin.sin_addr, iplit->addr, 4);
@@ -177,13 +181,13 @@ int __res_msend_rc(int nqueries, const unsigned char *const *queries,
 	t0 = t2 = mtime();
 	t1 = t2 - retry_interval;
 
-	for (; t2-t0 < timeout; t2=mtime()) {
+	for (; (unsigned long)(t2-t0) < (unsigned long)timeout; t2=mtime()) {
 		/* This is the loop exit condition: that all queries
 		 * have an accepted answer. */
 		for (i=0; i<nqueries && alens[i]>0; i++);
 		if (i==nqueries) break;
 
-		if (t2-t1 >= retry_interval) {
+		if ((unsigned long)(t2-t1) >= (unsigned long)retry_interval) {
 			/* Query all configured namservers in parallel */
 			for (i=0; i<nqueries; i++)
 				if (!alens[i])

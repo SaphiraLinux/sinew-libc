@@ -4,5 +4,6 @@
 
 int sched_getscheduler(pid_t pid)
 {
+	(void)pid;
 	return __syscall_ret(-ENOSYS);
 }

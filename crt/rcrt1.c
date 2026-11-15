@@ -10,5 +10,6 @@ int __libc_start_main(int (*)(), int, char **,
 
 hidden void __dls2(unsigned char *base, size_t *sp)
 {
+	(void)base;
 	__libc_start_main(main, *sp, (void *)(sp+1), _init, _fini, 0);
 }

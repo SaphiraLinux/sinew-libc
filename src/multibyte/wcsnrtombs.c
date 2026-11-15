@@ -6,11 +6,12 @@ size_t wcsnrtombs(char *restrict dst, const wchar_t **restrict wcs, size_t wn, s
 {
 	const wchar_t *ws = *wcs;
 	size_t cnt = 0;
+	(void)st;
 	if (!dst) n=0;
 	while (ws && wn) {
 		char tmp[MB_LEN_MAX];
 		size_t l = wcrtomb(n<MB_LEN_MAX ? tmp : dst, *ws, 0);
-		if (l==-1) {
+		if (!(l+1)) {
 			cnt = -1;
 			break;
 		}

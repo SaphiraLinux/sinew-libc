@@ -55,7 +55,7 @@ static int child(void *args_vp)
 		     && sigismember(&attr->__def, i)) {
 			sa.sa_handler = SIG_DFL;
 		} else if (sigismember(&hset, i)) {
-			if (i-32<3U) {
+			if ((unsigned)(i-32)<3U) {
 				sa.sa_handler = SIG_IGN;
 			} else {
 				__libc_sigaction(i, 0, &sa);

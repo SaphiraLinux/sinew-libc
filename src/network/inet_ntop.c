@@ -12,7 +12,7 @@ const char *inet_ntop(int af, const void *restrict a0, char *restrict s, socklen
 
 	switch (af) {
 	case AF_INET:
-		if (snprintf(s, l, "%d.%d.%d.%d", a[0],a[1],a[2],a[3]) < l)
+		if ((unsigned)snprintf(s, l, "%d.%d.%d.%d", a[0],a[1],a[2],a[3]) < l)
 			return s;
 		break;
 	case AF_INET6:

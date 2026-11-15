@@ -49,8 +49,8 @@ static inline void unlock_requeue(volatile int *l, volatile int *r, int w)
 {
 	a_store(l, 0);
 	if (w) __wake(l, 1, 1);
-	else __syscall(SYS_futex, l, FUTEX_REQUEUE|FUTEX_PRIVATE, 0, 1, r) != -ENOSYS
-		|| __syscall(SYS_futex, l, FUTEX_REQUEUE, 0, 1, r);
+	else (void)(__syscall(SYS_futex, l, FUTEX_REQUEUE|FUTEX_PRIVATE, 0, 1, r) != -ENOSYS
+		|| __syscall(SYS_futex, l, FUTEX_REQUEUE, 0, 1, r));
 }
 
 enum {
@@ -68,7 +68,7 @@ int __pthread_cond_timedwait(pthread_cond_t *restrict c, pthread_mutex_t *restri
 	if ((m->_m_type&15) && (m->_m_lock&INT_MAX) != __pthread_self()->tid)
 		return EPERM;
 
-	if (ts && ts->tv_nsec >= 1000000000UL)
+	if (ts && (unsigned long)ts->tv_nsec >= 1000000000UL)
 		return EINVAL;
 
 	__pthread_testcancel();

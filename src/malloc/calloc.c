@@ -17,7 +17,7 @@ static size_t mal0_clear(char *p, size_t n)
 	size_t i = (uintptr_t)pp & (pagesz - 1);
 	for (;;) {
 		pp = memset(pp - i, 0, i);
-		if (pp - p < pagesz) return pp - p;
+		if ((size_t)(pp - p) < pagesz) return pp - p;
 		for (i = pagesz; i; i -= 2*sizeof(T), pp -= 2*sizeof(T))
 		        if (((T *)pp)[-1] | ((T *)pp)[-2])
 				break;
@@ -26,6 +26,7 @@ static size_t mal0_clear(char *p, size_t n)
 
 static int allzerop(void *p)
 {
+	(void)p;
 	return 0;
 }
 weak_alias(allzerop, __malloc_allzerop);

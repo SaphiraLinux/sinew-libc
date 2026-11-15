@@ -2,7 +2,7 @@
 #include <string.h>
 #include <unistd.h>
 
-static void dummy(char *old, char *new) {}
+static void dummy(char *old, char *new) { (void)old; (void)new; }
 weak_alias(dummy, __env_rm_add);
 
 int __putenv(char *s, size_t l, char *r)

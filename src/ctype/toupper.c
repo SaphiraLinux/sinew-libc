@@ -8,6 +8,7 @@ int toupper(int c)
 
 int __toupper_l(int c, locale_t l)
 {
+	(void)l;
 	return toupper(c);
 }
 

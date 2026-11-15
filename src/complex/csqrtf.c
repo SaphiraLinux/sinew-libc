@@ -32,9 +32,10 @@
  * so we need to handle infinities specially. We turn on this pragma to
  * notify conforming c99 compilers that the fast-but-incorrect code that
  * gcc generates is acceptable, since the special cases have already been
- * handled.
+ * handled. (The STDC CX_LIMITED_RANGE pragma that expressed this is
+ * omitted: gcc does not implement it and warns it is ignoring it.
+ * The reasoning above stands on its own.)
  */
-#pragma STDC CX_LIMITED_RANGE ON
 
 float complex csqrtf(float complex z)
 {

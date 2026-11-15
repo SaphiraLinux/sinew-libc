@@ -8,6 +8,7 @@ int iswgraph(wint_t wc)
 
 int __iswgraph_l(wint_t c, locale_t l)
 {
+	(void)l;
 	return iswgraph(c);
 }
 

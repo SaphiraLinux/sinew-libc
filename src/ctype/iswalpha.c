@@ -15,6 +15,7 @@ int iswalpha(wint_t wc)
 
 int __iswalpha_l(wint_t c, locale_t l)
 {
+	(void)l;
 	return iswalpha(c);
 }
 

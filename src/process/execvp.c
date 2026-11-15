@@ -29,7 +29,7 @@ int __execvpe(const char *file, char *const argv[], char *const envp[])
 	for(p=path; ; p=z) {
 		char b[l+k+1];
 		z = __strchrnul(p, ':');
-		if (z-p >= l) {
+		if ((size_t)(z-p) >= l) {
 			if (!*z++) break;
 			continue;
 		}

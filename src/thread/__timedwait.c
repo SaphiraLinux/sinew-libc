@@ -38,7 +38,7 @@ int __timedwait_cp(volatile int *addr, int val,
 	if (priv) priv = FUTEX_PRIVATE;
 
 	if (at) {
-		if (at->tv_nsec >= 1000000000UL) return EINVAL;
+		if ((unsigned long)at->tv_nsec >= 1000000000UL) return EINVAL;
 		if (__clock_gettime(clk, &to)) return EINVAL;
 		to.tv_sec = at->tv_sec - to.tv_sec;
 		if ((to.tv_nsec = at->tv_nsec - to.tv_nsec) < 0) {

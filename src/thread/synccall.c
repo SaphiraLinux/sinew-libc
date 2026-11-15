@@ -15,10 +15,12 @@ static sem_t target_sem, caller_sem, exit_sem;
 
 static void dummy(void *p)
 {
+	(void)p;
 }
 
 static void handler(int sig)
 {
+	(void)sig;
 	if (__pthread_self()->tid != target_tid) return;
 
 	int old_errno = errno;
