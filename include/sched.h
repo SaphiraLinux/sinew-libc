@@ -77,6 +77,23 @@ int     sched_yield(void);
 int clone (int (*)(void *), void *, int, void *, ...);
 int unshare(int);
 int setns(int, int);
+/* Sinew public clone3(2) wrapper (11 x u64 stable kernel layout,
+ * fields append-only). See src/linux/clone3_public.c for the
+ * callback/stack models and the failure contract. */
+struct clone3_args {
+	unsigned long long flags;
+	unsigned long long pidfd;
+	unsigned long long child_tid;
+	unsigned long long parent_tid;
+	unsigned long long exit_signal;
+	unsigned long long stack;
+	unsigned long long stack_size;
+	unsigned long long tls;
+	unsigned long long set_tid;
+	unsigned long long set_tid_size;
+	unsigned long long cgroup;
+};
+pid_t clone3(struct clone3_args *, size_t, int (*)(void *), void *);
 
 int (memcmp)(const void *, const void *, size_t);
 void *(memset)(void *, int, size_t);
