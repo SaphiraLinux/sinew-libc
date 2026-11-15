@@ -2,91 +2,77 @@
 #include <errno.h>
 #include <sched.h>
 #include <stddef.h>
+#include <string.h>
 #include "syscall.h"
 #include "clone3_impl.h"
 
 /*
- * Public clone3(2) wrapper (Sinew P3). Thin errno-translating layer
- * over the internal dispatch; every policy lives in
- * __clone3_launch/__clone3_dispatch (src/linux/clone3.c), never here.
+ * Public clone3(2) wrapper (Sinew P3). Thin validation layer over
+ * the internal launch; every fallback/error policy lives in
+ * __clone3_launch (src/linux/clone3.c), never here.
  *
- * Two execution models, selected by the callback:
+ * This is the explicit-stack callback form only: the child runs
+ * cb(arg) on the supplied stack and exits with cb's return value
+ * as its exit status; the parent returns the child pid. There is
+ * no return-twice form here: a NULL callback is EINVAL, always.
+ * (f2b6525 briefly allowed NULL-callback inherit semantics; that
+ * was a unilateral deviation from the agreed contract and is
+ * withdrawn. If inherit semantics are wanted, that is a separate
+ * deliberate ABI decision, not a side effect of this wrapper.)
  *
- * - cb != NULL: explicit-stack form. args->stack/stack_size must
- *   describe the child stack; the child runs cb(arg) on it and exits
- *   with cb's return value as its exit status. The parent returns the
- *   child pid. Missing stack with a callback is EINVAL: after a stack
- *   switch no C call can return, so the raw inherit form cannot serve
- *   a callback (see __clone3 in clone3.c).
+ * Size discipline: clone3(2) versions its struct at 64, 80 and 88
+ * bytes, and the kernel reads only the supplied prefix. The
+ * wrapper does the same: anything below 64 is EINVAL outright
+ * (the kernel accepts nothing smaller), and only
+ * min(size, 88) bytes are copied. Fields past the supplied size
+ * stay zero. In particular a size-64 caller that happens to have
+ * a nonzero cgroup member gets launch semantics, not a refusal:
+ * the field was never supplied.
  *
- * - cb == NULL: inherit form, returns twice like fork()/clone().
- *   args->stack/stack_size must both be zero: an explicit stack with
- *   no callback would strand the child with nowhere to return, and
- *   the kernel accepts the combination silently, so this is EINVAL
- *   here instead of a stillborn child.
+ * Signal discipline: the exit signal travels in exit_signal only.
+ * A nonzero low byte in flags is EINVAL, not translated: silent
+ * translation would bless a usage the strict clone3 validation
+ * rejects, and two sources of truth need an owner. (The same
+ * reasoning withdrew the f2b6525 translation.)
  *
- * Signal: the exit signal may arrive either as the legacy low byte
- * of flags (clone(2) style, e.g. flags|SIGCHLD) or as exit_signal.
- * If both are given they must agree, else EINVAL; the effective
- * value goes to exit_signal and the flags low byte is cleared,
- * because clone3(2) validates flags strictly and rejects the byte.
+ * CLONE_DETACHED is stripped before dispatch: a historical no-op
+ * bit the kernel rejects with EINVAL. No other flag is touched.
  *
- * Failure contract (from the dispatcher, unchanged): ENOSYS caches
+ * Failure contract (from the launcher, unchanged): ENOSYS caches
  * the number dead and falls back to legacy clone; EPERM falls back
  * without caching (seccomp may deny the number, not the ability);
  * EINVAL propagates and never falls back. Anything requesting
  * pidfd/cgroup/set_tid that cannot be served fails loudly with
- * ENOSYS instead of silently dropping the property. CLONE_DETACHED
- * is stripped: a historical no-op the kernel rejects with EINVAL.
- *
- * struct clone3_args mirrors the stable Linux clone_args ABI
- * (fields append-only, 11 x u64); it is copied field by field into
- * the internal struct so the two can never silently diverge.
+ * ENOSYS instead of silently dropping the property.
  */
 pid_t clone3(struct clone3_args *args, size_t size,
 	int (*cb)(void *), void *arg)
 {
 	struct clone_args a;
-	unsigned long long sig;
+	size_t n;
 	long ret;
 
-	if (!args) {
+	if (!args || size < 64) {
 		errno = EINVAL;
 		return -1;
 	}
-	a.flags = args->flags;
-	a.pidfd = args->pidfd;
-	a.child_tid = args->child_tid;
-	a.parent_tid = args->parent_tid;
-	a.exit_signal = args->exit_signal;
-	a.stack = args->stack;
-	a.stack_size = args->stack_size;
-	a.tls = args->tls;
-	a.set_tid = args->set_tid;
-	a.set_tid_size = args->set_tid_size;
-	a.cgroup = args->cgroup;
-
-	sig = a.flags & 0xffull;
-	a.flags &= ~0xffull;
-	if (sig && a.exit_signal && sig != (a.exit_signal & 0xffull)) {
-		errno = EINVAL;
-		return -1;
-	}
-	if (!a.exit_signal)
-		a.exit_signal = sig;
-
 	if (!cb) {
-		if (a.stack || a.stack_size) {
-			errno = EINVAL;
-			return -1;
-		}
-	} else {
-		if (!a.stack || !a.stack_size) {
-			errno = EINVAL;
-			return -1;
-		}
+		errno = EINVAL;
+		return -1;
+	}
+	memset(&a, 0, sizeof a);
+	n = size < sizeof a ? size : sizeof a;
+	memcpy(&a, args, n);
+
+	if (a.flags & 0xffull) {
+		errno = EINVAL;
+		return -1;
+	}
+	if (!a.stack || !a.stack_size) {
+		errno = EINVAL;
+		return -1;
 	}
 
-	ret = __clone3_dispatch(&a, size, cb, arg);
+	ret = __clone3_launch(&a, size, cb, arg);
 	return __syscall_ret(ret);
 }

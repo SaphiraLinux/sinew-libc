@@ -152,6 +152,14 @@ hidden long __clone3_dispatch(struct clone_args *args, size_t size,
 	if (!a.stack && !a.stack_size) {
 		int fb_cause = 1;
 		a_inc(&c_attempts);
+		/* Inherit model shares the caller's stack, so a
+		 * separately supplied stack is mandatory with
+		 * CLONE_VM: without one both would run on the same
+		 * stack. Reject loudly instead of corrupting it. */
+		if (a.flags & (unsigned long long)CLONE_VM) {
+			a_inc(&c_refused);
+			return -ENOSYS;
+		}
 		if (clone3_ok < 0) {
 			goto fb_inherit;
 		}
@@ -184,10 +192,17 @@ hidden long __clone3_dispatch(struct clone_args *args, size_t size,
 			a_inc(&c_fallback_enosys);
 		else
 			a_inc(&c_fallback_eperm);
+		/* Forward the tid/tls properties instead of dropping
+		 * them: x86_64 legacy clone takes (flags, stack,
+		 * parent_tid, child_tid, tls). A request that named
+		 * them must keep them, not silently lose them. */
 		return __syscall(SYS_clone,
 			(int)((a.flags & ~0xffull) |
 			      (a.exit_signal & 0xff)),
-			0);
+			0,
+			(long)a.parent_tid,
+			(long)a.child_tid,
+			(long)a.tls);
 	}
 	return __clone3_launch(&a, size, func, arg);
 }
