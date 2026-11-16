@@ -111,30 +111,25 @@ hidden long __clone3_launch(struct clone_args *args, size_t size,
 		return -EINVAL;
 	}
 	a.flags &= ~((unsigned long long)CLONE_DETACHED);
-	if (clone3_ok < 0) {
-		goto fallback;
-	}
-	/* The trampoline passes the child argument through the top
-	 * slot and the kernel starts the child exactly at
-	 * stack+stack_size, so that sum must be 16-byte aligned for
-	 * the two to agree and for the child ABI. Thread stacks are
-	 * routinely only 8-aligned (the top depends on TLS/TSD
-	 * sizes), so normalize here rather than trusting callers:
-	 * shrink the window, never grow it (the top slot stays
-	 * mapped); refuse windows too small to hold the slot. The
-	 * normalized top is what both the native path and the
-	 * legacy fallback below receive, and the legacy __clone
-	 * re-aligns idempotently, so the two stay consistent. */
+	/* Validate the whole explicit-stack window before either
+	 * trampoline (native entry or legacy fallback) runs. The
+	 * trampoline writes its 8-byte argument slot at
+	 * align(stack+stack_size)-8, so the declared window must
+	 * contain it: reject a wrapped sum and windows smaller than
+	 * mis+8 at every alignment, not only misaligned tops.
+	 * Shrink the window, never grow it. The legacy __clone
+	 * re-aligns idempotently, so both paths stay consistent. */
 	{
 		unsigned long long top = a.stack + a.stack_size;
 		unsigned long long mis = top & 15ull;
-		if (mis) {
-			if (a.stack_size < mis + 8) {
-				a_inc(&c_einval);
-				return -EINVAL;
-			}
-			a.stack_size -= mis;
+		if (top < a.stack || a.stack_size < mis + 8) {
+			a_inc(&c_einval);
+			return -EINVAL;
 		}
+		a.stack_size -= mis;
+	}
+	if (clone3_ok < 0) {
+		goto fallback;
 	}
 	ret = __clone3_entry(&a, size, func, arg);
 	if (ret >= 0) {
