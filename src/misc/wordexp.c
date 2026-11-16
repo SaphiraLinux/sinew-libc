@@ -20,7 +20,14 @@ static void reap(pid_t pid)
 static char *getword(FILE *f)
 {
 	char *s = 0;
-	return getdelim(&s, (size_t [1]){0}, 0, f) < 0 ? 0 : s;
+	if (getdelim(&s, (size_t [1]){0}, 0, f) < 0) {
+		/* getdelim leaves ownership of any partial buffer with the
+		 * caller on every error path (at-EOF growth, ENOMEM);
+		 * release it here so the error path is net-zero (D1). */
+		free(s);
+		return 0;
+	}
+	return s;
 }
 
 static int is_wc(int c)
